@@ -256,47 +256,82 @@ async function getFirmwareInfo(deviceId, deviceType = 'HMG-50', currentVersion =
             mppt: false
         });
 
-        const firmwareParams = new URLSearchParams({
-            endpoint: '/ems/api/v2/checkSmallBalconyOTA',
-            uid: deviceId,
-            lang: 'English',
-            token: currentToken,
-            device_type: deviceType,
-            mailbox: currentEmail,
-            click: 'false',
-            is_fourDigit: isFourDigit,
-            m: currentVersion,
-            sbv: '0',  // BMS version - start with 0 to get latest
-            mppt: '0', // MPPT version - start with 0 to get latest  
-            inv: '0'   // Inverter version - start with 0 to get latest
-        });
-
-        const proxiedUpdateUrl = `/.netlify/functions/marstek-proxy?${firmwareParams.toString()}`;
-
-        console.log('Firmware check via Netlify proxy:', proxiedUpdateUrl);
-
-        const response = await fetch(proxiedUpdateUrl, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
+        // Check both BMS updates (with current version) and EMS updates (with m=0)
+        const checks = [
+            {
+                name: 'BMS/Battery',
+                params: {
+                    endpoint: '/ems/api/v2/checkSmallBalconyOTA',
+                    uid: deviceId,
+                    lang: 'English',
+                    token: currentToken,
+                    device_type: deviceType,
+                    mailbox: currentEmail,
+                    click: 'false',
+                    is_fourDigit: isFourDigit,
+                    m: currentVersion,  // Current firmware version for BMS updates
+                    sbv: '0',
+                    mppt: '0',
+                    inv: '0'
+                }
+            },
+            {
+                name: 'EMS/Control',
+                params: {
+                    endpoint: '/ems/api/v2/checkSmallBalconyOTA',
+                    uid: deviceId,
+                    lang: 'English',
+                    token: currentToken,
+                    device_type: deviceType,
+                    mailbox: currentEmail,
+                    click: 'false',
+                    is_fourDigit: isFourDigit,
+                    m: '0',  // m=0 for EMS/control firmware updates
+                    sbv: '0',
+                    mppt: '0',
+                    inv: '0'
+                }
             }
-        });
+        ];
 
-        if (!response.ok) {
-            throw new Error(`Firmware check failed: ${response.status} ${response.statusText}`);
+        const results = {};
+        
+        for (const check of checks) {
+            const proxiedUrl = `/.netlify/functions/marstek-proxy?${new URLSearchParams(check.params).toString()}`;
+            
+            console.log(`${check.name} firmware check:`, proxiedUrl);
+
+            const response = await fetch(proxiedUrl, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                }
+            });
+
+            if (response.ok) {
+                const responseText = await response.text();
+                console.log(`${check.name} response:`, responseText);
+                
+                try {
+                    const data = JSON.parse(responseText);
+                    results[check.name.toLowerCase().replace('/', '_')] = data;
+                } catch (e) {
+                    console.warn(`Failed to parse ${check.name} response:`, e);
+                }
+            }
         }
 
-        const responseText = await response.text();
-        console.log('Firmware response:', responseText);
+        // Combine results
+        const combinedData = {
+            code: results.bms_battery?.code || results.ems_control?.code || 0,
+            msg: 'Combined firmware check',
+            data: {
+                ...results.bms_battery?.data,
+                ...results.ems_control?.data
+            }
+        };
 
-        let firmwareData;
-        try {
-            firmwareData = JSON.parse(responseText);
-        } catch (e) {
-            throw new Error('Invalid JSON response from firmware API');
-        }
-
-        return firmwareData;
+        return combinedData;
 
     } catch (error) {
         console.error('Firmware check failed:', error);
