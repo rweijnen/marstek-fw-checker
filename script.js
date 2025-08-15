@@ -101,7 +101,7 @@ async function authenticateUser(email, password) {
         return {
             success: true,
             token: token,
-            devices: authData.devices || []
+            devices: authData.data || []  // Changed from authData.devices to authData.data
         };
 
     } catch (error) {
