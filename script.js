@@ -321,13 +321,19 @@ async function getFirmwareInfo(deviceId, deviceType = 'HMG-50', currentVersion =
             }
         }
 
-        // Combine results
+        // Combine results and show debugging info
+        console.log('All firmware check results:', results);
+        
         const combinedData = {
             code: results.bms_battery?.code || results.ems_control?.code || 0,
             msg: 'Combined firmware check',
             data: {
                 ...results.bms_battery?.data,
                 ...results.ems_control?.data
+            },
+            debug: {
+                bms_check: results.bms_battery,
+                ems_check: results.ems_control
             }
         };
 
@@ -600,7 +606,7 @@ function displayFirmwareDetails(device, firmwareData) {
         <div class="firmware-section">
             <h3>🔧 Technical Details</h3>
             <div class="release-notes">
-                <h4>API Response</h4>
+                <h4>Combined API Response</h4>
                 <pre style="background: #2d2d2d; color: #e0e0e0; padding: 15px; border-radius: 6px; overflow-x: auto; font-size: 12px; max-height: 200px;">${JSON.stringify(firmwareData, null, 2)}</pre>
             </div>
         </div>
