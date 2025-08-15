@@ -265,7 +265,10 @@ async function getFirmwareInfo(deviceId, deviceType = 'HMG-50', currentVersion =
             mailbox: currentEmail,
             click: 'false',
             is_fourDigit: isFourDigit,
-            m: currentVersion
+            m: currentVersion,
+            sbv: '0',  // BMS version - start with 0 to get latest
+            mppt: '0', // MPPT version - start with 0 to get latest  
+            inv: '0'   // Inverter version - start with 0 to get latest
         });
 
         const proxiedUpdateUrl = `/.netlify/functions/marstek-proxy?${firmwareParams.toString()}`;
