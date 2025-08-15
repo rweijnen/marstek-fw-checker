@@ -472,6 +472,32 @@ window.addEventListener('click', function(event) {
     }
 });
 
+// Fetch and display GitHub version info
+async function loadVersionInfo() {
+    try {
+        const response = await fetch('https://api.github.com/repos/rweijnen/marstek-fw-checker/commits/master');
+        const commit = await response.json();
+        
+        const shortSha = commit.sha.substring(0, 7);
+        const commitDate = new Date(commit.commit.author.date).toLocaleDateString();
+        const commitMessage = commit.commit.message.split('\n')[0]; // First line only
+        
+        const versionInfo = document.getElementById('versionInfo');
+        versionInfo.innerHTML = `
+            <p>
+                <small>
+                    Version: <a href="https://github.com/rweijnen/marstek-fw-checker/commit/${commit.sha}" target="_blank">${shortSha}</a>
+                    | ${commitDate} | ${commitMessage}
+                </small>
+            </p>
+        `;
+    } catch (error) {
+        console.warn('Could not load version info:', error);
+        const versionInfo = document.getElementById('versionInfo');
+        versionInfo.innerHTML = '<p><small>Version info unavailable</small></p>';
+    }
+}
+
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Marstek Firmware Query Tool loaded');
@@ -485,4 +511,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('devicesSection').style.display = 'none';
     document.getElementById('error').style.display = 'none';
     document.getElementById('results').style.display = 'none';
+    
+    // Load version information
+    loadVersionInfo();
 });
