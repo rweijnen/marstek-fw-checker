@@ -42,10 +42,9 @@ function fallbackMD5(str) {
 // Global variables for session management
 let currentToken = null;
 let currentEmail = null;
-let currentCorsProxy = null;
 
 // Authenticate user and get device list
-async function authenticateUser(email, password, corsProxy) {
+async function authenticateUser(email, password) {
     try {
         // Hash password
         let passwordHash;
@@ -56,18 +55,16 @@ async function authenticateUser(email, password, corsProxy) {
             passwordHash = fallbackMD5(password);
         }
 
-        // Authenticate and get device list
-        const authUrl = `https://eu.hamedata.com/app/Solar/v2_get_device.php?pwd=${passwordHash}&mailbox=${encodeURIComponent(email)}`;
-        let proxiedAuthUrl;
+        // Authenticate and get device list using Netlify function
+        const authParams = new URLSearchParams({
+            endpoint: '/app/Solar/v2_get_device.php',
+            pwd: passwordHash,
+            mailbox: email
+        });
         
-        if (corsProxy === 'whateverorigin') {
-            proxiedAuthUrl = `https://whateverorigin.org/get?url=${encodeURIComponent(authUrl)}&callback=?`;
-        } else {
-            proxiedAuthUrl = corsProxy ? corsProxy + encodeURIComponent(authUrl) : authUrl;
-        }
-
-        console.log('Auth URL:', authUrl);
-        console.log('Proxied URL:', proxiedAuthUrl);
+        const proxiedAuthUrl = `/.netlify/functions/marstek-proxy?${authParams.toString()}`;
+        
+        console.log('Using Netlify proxy:', proxiedAuthUrl);
 
         const authResponse = await fetch(proxiedAuthUrl, {
             method: 'GET',
@@ -83,30 +80,15 @@ async function authenticateUser(email, password, corsProxy) {
         const authText = await authResponse.text();
         console.log('Auth response:', authText);
 
-        let actualResponse;
-        
-        // Handle whateverorigin response format
-        if (corsProxy === 'whateverorigin') {
-            try {
-                const whateverData = JSON.parse(authText);
-                actualResponse = whateverData.contents;
-                console.log('Unwrapped response:', actualResponse);
-            } catch (e) {
-                throw new Error('Invalid response from whateverorigin proxy');
-            }
-        } else {
-            actualResponse = authText;
-        }
-
         let authData;
         try {
-            authData = JSON.parse(actualResponse);
+            authData = JSON.parse(authText);
         } catch (e) {
             // Response might be plain text token
-            authData = { token: actualResponse.trim() };
+            authData = { token: authText.trim() };
         }
 
-        const token = authData.token || actualResponse.trim();
+        const token = authData.token || authText.trim();
         
         if (!token) {
             throw new Error('No authentication token received');
@@ -115,7 +97,6 @@ async function authenticateUser(email, password, corsProxy) {
         // Store session data
         currentToken = token;
         currentEmail = email;
-        currentCorsProxy = corsProxy;
 
         return {
             success: true,
@@ -143,7 +124,8 @@ async function getFirmwareInfo(deviceId, deviceType = 'HMG-50', currentVersion =
             mppt: false
         });
 
-        const queryParams = new URLSearchParams({
+        const firmwareParams = new URLSearchParams({
+            endpoint: '/ems/api/v2/checkSmallBalconyOTA',
             uid: deviceId,
             lang: 'English',
             token: currentToken,
@@ -154,10 +136,9 @@ async function getFirmwareInfo(deviceId, deviceType = 'HMG-50', currentVersion =
             m: currentVersion
         });
 
-        const updateUrl = `https://eu.hamedata.com/ems/api/v2/checkSmallBalconyOTA?${queryParams.toString()}`;
-        const proxiedUpdateUrl = currentCorsProxy ? currentCorsProxy + encodeURIComponent(updateUrl) : updateUrl;
+        const proxiedUpdateUrl = `/.netlify/functions/marstek-proxy?${firmwareParams.toString()}`;
 
-        console.log('Firmware check URL:', updateUrl);
+        console.log('Firmware check via Netlify proxy:', proxiedUpdateUrl);
 
         const response = await fetch(proxiedUpdateUrl, {
             method: 'GET',
@@ -435,7 +416,6 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
-    const corsProxy = document.getElementById('corsProxy').value;
     
     // Show loading
     document.getElementById('loading').style.display = 'block';
@@ -443,7 +423,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     document.getElementById('loginBtn').disabled = true;
 
     try {
-        const authResult = await authenticateUser(email, password, corsProxy);
+        const authResult = await authenticateUser(email, password);
         
         if (authResult.success) {
             displayDevices(authResult.devices);
@@ -464,7 +444,6 @@ document.getElementById('logoutBtn').addEventListener('click', function() {
     // Clear session data
     currentToken = null;
     currentEmail = null;
-    currentCorsProxy = null;
     
     // Reset form
     document.getElementById('loginForm').reset();

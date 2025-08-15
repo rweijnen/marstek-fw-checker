@@ -28,15 +28,11 @@
                         <input type="password" id="password" name="password" required>
                     </div>
 
-                    <div class="form-group">
-                        <label for="corsProxy">CORS Proxy (required for browser security)</label>
-                        <select id="corsProxy" name="corsProxy">
-                            <option value="https://cors-anywhere.herokuapp.com/">cors-anywhere.herokuapp.com</option>
-                            <option value="https://api.allorigins.win/raw?url=">allorigins.win</option>
-                            <option value="whateverorigin">whateverorigin.org</option>
-                            <option value="">None (may fail due to CORS)</option>
-                        </select>
-                        <small>Note: cors-anywhere requires visiting their demo page first</small>
+                    <div class="form-group" style="text-align: center; padding: 15px; background: #4a4a4a; border-radius: 6px; border: 1px solid #555;">
+                        <p style="color: #4CAF50; font-weight: 600; margin: 0;">
+                            ✅ CORS Proxy Built-In
+                        </p>
+                        <small style="color: #b0b0b0;">No external proxy setup required - handled by Netlify backend</small>
                     </div>
 
                     <button type="submit" id="loginBtn">Login & Get Devices</button>
