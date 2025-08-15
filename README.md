@@ -1,8 +1,10 @@
 # Marstek Firmware Query Web Tool
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/464bc73e-9763-45eb-afd5-502cb19dbe8b/deploy-status)](https://app.netlify.com/projects/marstek-fw-checker/deploys)
+
 🔋 **Web-based firmware update checker for Marstek devices**
 
-This tool converts the original PowerShell script to a modern web interface that can be hosted on GitHub Pages.
+This tool converts the original PowerShell script to a modern web interface with built-in CORS proxy hosted on Netlify.
 
 ## 🚀 Features
 
