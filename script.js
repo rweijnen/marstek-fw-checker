@@ -425,63 +425,70 @@ function displayFirmwareDetails(device, firmwareData) {
         </div>
     `;
     
-    // Firmware Status
-    const hasUpdates = firmwareData.hasUpdate || firmwareData.update_available || false;
+    // Firmware Status - Check if updates are actually available by looking at data content
+    const hasActualUpdates = (
+        (firmwareData.data?.control && firmwareData.data.control.version) ||
+        (firmwareData.data?.bms && firmwareData.data.bms.version) ||
+        (firmwareData.data?.mppt && firmwareData.data.mppt.version) ||
+        (firmwareData.data?.micro && firmwareData.data.micro.version) ||
+        (firmwareData.data?.dcdc && firmwareData.data.dcdc.version)
+    );
+    
     html += `
         <div class="firmware-section">
-            <h3>${hasUpdates ? '🔄 Updates Available' : '✅ Up to Date'}</h3>
+            <h3>${hasActualUpdates ? '🔄 Updates Available' : '✅ Up to Date'}</h3>
     `;
     
-    if (hasUpdates) {
+    if (hasActualUpdates) {
         html += '<p style="color: #FF9800; font-weight: 600;">New firmware versions are available for download!</p>';
         
-        // Available firmware updates
-        if (firmwareData.firmware) {
+        // BMS firmware (most common)
+        if (firmwareData.data?.bms && firmwareData.data.bms.version) {
             html += `
                 <div class="firmware-details">
                     <div class="firmware-detail">
-                        <label>Main Firmware</label>
-                        <value>${firmwareData.firmware.version || 'Unknown'}</value>
+                        <label>BMS Firmware</label>
+                        <value>Version ${firmwareData.data.bms.version}</value>
                     </div>
                 </div>
             `;
             
-            if (firmwareData.firmware.releaseNotes) {
+            if (firmwareData.data.bms.remark || firmwareData.data.bms.chinese) {
                 html += `
                     <div class="release-notes">
                         <h4>📝 Release Notes</h4>
-                        <p>${firmwareData.firmware.releaseNotes}</p>
+                        <p>${firmwareData.data.bms.remark || firmwareData.data.bms.chinese}</p>
                     </div>
                 `;
             }
             
-            if (firmwareData.firmware.downloadUrl) {
+            if (firmwareData.data.bms.url) {
                 html += `
                     <div class="download-section">
-                        <button class="btn btn-primary" onclick="downloadFirmware('${firmwareData.firmware.downloadUrl}', 'firmware_${device.devid}_${firmwareData.firmware.version}.bin')">
-                            📥 Download Main Firmware
+                        <button class="btn btn-primary" onclick="downloadFirmware('${firmwareData.data.bms.url}', 'bms_${device.devid}_v${firmwareData.data.bms.version}.bin')">
+                            📥 Download BMS Firmware v${firmwareData.data.bms.version}
                         </button>
                     </div>
                 `;
             }
         }
         
-        // BMS firmware
-        if (firmwareData.bms) {
+        // Control firmware
+        if (firmwareData.data?.control && firmwareData.data.control.version) {
             html += `
                 <div class="firmware-details" style="margin-top: 15px;">
                     <div class="firmware-detail">
-                        <label>BMS Firmware</label>
-                        <value>${firmwareData.bms.version || 'Unknown'}</value>
+                        <label>Control Firmware</label>
+                        <value>Version ${firmwareData.data.control.version}</value>
                     </div>
                 </div>
             `;
             
-            if (firmwareData.bms.downloadUrl) {
+            if (firmwareData.data.control.url) {
                 html += `
                     <div class="download-section">
-                        <button class="btn btn-primary" onclick="downloadFirmware('${firmwareData.bms.downloadUrl}', 'bms_${device.devid}_${firmwareData.bms.version}.bin')">
-                            📥 Download BMS Firmware
+                        <button class="btn btn-primary" onclick="downloadFirmware('${firmwareData.data.control.url}', 'control_${device.devid}_v${firmwareData.data.control.version}.bin')">
+                            📥 Download Control Firmware v${firmwareData.data.control.version}
                         </button>
                     </div>
                 `;
@@ -489,28 +496,28 @@ function displayFirmwareDetails(device, firmwareData) {
         }
         
         // MPPT firmware
-        if (firmwareData.mppt) {
+        if (firmwareData.data?.mppt && firmwareData.data.mppt.version) {
             html += `
                 <div class="firmware-details" style="margin-top: 15px;">
                     <div class="firmware-detail">
                         <label>MPPT Firmware</label>
-                        <value>${firmwareData.mppt.version || 'Unknown'}</value>
+                        <value>Version ${firmwareData.data.mppt.version}</value>
                     </div>
                 </div>
             `;
             
-            if (firmwareData.mppt.downloadUrl) {
+            if (firmwareData.data.mppt.url) {
                 html += `
                     <div class="download-section">
-                        <button class="btn btn-primary" onclick="downloadFirmware('${firmwareData.mppt.downloadUrl}', 'mppt_${device.devid}_${firmwareData.mppt.version}.bin')">
-                            📥 Download MPPT Firmware
+                        <button class="btn btn-primary" onclick="downloadFirmware('${firmwareData.data.mppt.url}', 'mppt_${device.devid}_v${firmwareData.data.mppt.version}.bin')">
+                            📥 Download MPPT Firmware v${firmwareData.data.mppt.version}
                         </button>
                     </div>
                 `;
             }
         }
     } else {
-        html += '<p style="color: #4CAF50; font-weight: 600;">Your device is running the latest firmware versions.</p>';
+        html += '<p style="color: #4CAF50; font-weight: 600;">No firmware updates found. This could mean:<br>• You already have the latest firmware<br>• No updates are available for your device model<br>• Current firmware versions were not provided</p>';
     }
     
     html += '</div>';
