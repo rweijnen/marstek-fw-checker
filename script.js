@@ -58,9 +58,16 @@ async function authenticateUser(email, password, corsProxy) {
 
         // Authenticate and get device list
         const authUrl = `https://eu.hamedata.com/app/Solar/v2_get_device.php?pwd=${passwordHash}&mailbox=${encodeURIComponent(email)}`;
-        const proxiedAuthUrl = corsProxy ? corsProxy + encodeURIComponent(authUrl) : authUrl;
+        let proxiedAuthUrl;
+        
+        if (corsProxy === 'whateverorigin') {
+            proxiedAuthUrl = `https://whateverorigin.org/get?url=${encodeURIComponent(authUrl)}&callback=?`;
+        } else {
+            proxiedAuthUrl = corsProxy ? corsProxy + encodeURIComponent(authUrl) : authUrl;
+        }
 
         console.log('Auth URL:', authUrl);
+        console.log('Proxied URL:', proxiedAuthUrl);
 
         const authResponse = await fetch(proxiedAuthUrl, {
             method: 'GET',
@@ -76,15 +83,30 @@ async function authenticateUser(email, password, corsProxy) {
         const authText = await authResponse.text();
         console.log('Auth response:', authText);
 
-        let authData;
-        try {
-            authData = JSON.parse(authText);
-        } catch (e) {
-            // Response might be plain text token
-            authData = { token: authText.trim() };
+        let actualResponse;
+        
+        // Handle whateverorigin response format
+        if (corsProxy === 'whateverorigin') {
+            try {
+                const whateverData = JSON.parse(authText);
+                actualResponse = whateverData.contents;
+                console.log('Unwrapped response:', actualResponse);
+            } catch (e) {
+                throw new Error('Invalid response from whateverorigin proxy');
+            }
+        } else {
+            actualResponse = authText;
         }
 
-        const token = authData.token || authText.trim();
+        let authData;
+        try {
+            authData = JSON.parse(actualResponse);
+        } catch (e) {
+            // Response might be plain text token
+            authData = { token: actualResponse.trim() };
+        }
+
+        const token = authData.token || actualResponse.trim();
         
         if (!token) {
             throw new Error('No authentication token received');
