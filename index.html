@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marstek Firmware Query Tool</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Marstek Firmware Query Tool</h1>
+            <p>Check for firmware updates for your Marstek devices</p>
+        </header>
+
+        <div class="form-container">
+            <!-- Login Section -->
+            <div id="loginSection" class="login-section">
+                <h2>🔐 Login to Marstek Account</h2>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="email">Email <span class="required">*</span></label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password <span class="required">*</span></label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="corsProxy">CORS Proxy (required for browser security)</label>
+                        <select id="corsProxy" name="corsProxy">
+                            <option value="https://cors-anywhere.herokuapp.com/">cors-anywhere.herokuapp.com</option>
+                            <option value="https://api.allorigins.win/raw?url=">allorigins.win</option>
+                            <option value="">None (may fail due to CORS)</option>
+                        </select>
+                        <small>Note: You may need to visit the proxy site first to enable it</small>
+                    </div>
+
+                    <button type="submit" id="loginBtn">Login & Get Devices</button>
+                </form>
+            </div>
+
+            <!-- Devices Section -->
+            <div id="devicesSection" class="devices-section">
+                <h2>📱 Your Devices</h2>
+                <div id="deviceGrid" class="device-grid">
+                    <!-- Devices will be populated here -->
+                </div>
+                <button id="logoutBtn" class="btn btn-secondary" style="margin-top: 20px;">Logout</button>
+            </div>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Querying firmware...</p>
+        </div>
+
+        <div id="results" class="results" style="display: none;">
+            <h2>Results</h2>
+            <div id="resultContent"></div>
+        </div>
+
+        <div id="error" class="error" style="display: none;">
+            <h2>Error</h2>
+            <div id="errorContent"></div>
+        </div>
+    </div>
+
+    <!-- Firmware Details Modal -->
+    <div id="firmwareModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalDeviceName">Device Firmware</h2>
+                <span class="modal-close">&times;</span>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Firmware details will be populated here -->
+            </div>
+            <div class="modal-footer">
+                <button id="closeModalBtn" class="btn btn-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>This tool queries the Marstek firmware update API to check for available updates.</p>
+        <p><strong>Note:</strong> Your credentials are only used to authenticate with Marstek servers and are not stored.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
