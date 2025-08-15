@@ -482,6 +482,48 @@ footer p {
     text-decoration: underline;
 }
 
+/* Translation styling */
+.release-notes-content {
+    margin-bottom: 15px;
+}
+
+.original-text {
+    margin-bottom: 10px;
+    padding: 10px;
+    background: #3a3a3a;
+    border-left: 3px solid #FF9800;
+    border-radius: 4px;
+}
+
+.translation-section {
+    margin-top: 10px;
+    padding: 10px;
+    background: #2d4a2d;
+    border-left: 3px solid #4CAF50;
+    border-radius: 4px;
+}
+
+.translated-text {
+    color: #e0e0e0;
+    margin-bottom: 5px;
+}
+
+.translation-note {
+    color: #b0b0b0;
+    font-style: italic;
+}
+
+.translate-btn {
+    margin-top: 10px;
+    font-size: 12px;
+    padding: 8px 12px;
+}
+
+.translate-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     body {

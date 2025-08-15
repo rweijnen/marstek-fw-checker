@@ -489,10 +489,21 @@ function displayFirmwareDetails(device, firmwareData) {
             `;
             
             if (firmwareData.data.bms.remark || firmwareData.data.bms.chinese) {
+                const releaseNotes = firmwareData.data.bms.remark || firmwareData.data.bms.chinese;
+                const notesId = `notes_bms_${Date.now()}`;
                 html += `
                     <div class="release-notes">
                         <h4>📝 Release Notes</h4>
-                        <p>${firmwareData.data.bms.remark || firmwareData.data.bms.chinese}</p>
+                        <div id="${notesId}" class="release-notes-content">
+                            <p class="original-text">${releaseNotes}</p>
+                            <div class="translation-section" style="display: none;">
+                                <p class="translated-text"></p>
+                                <small class="translation-note">Translation provided by Google Translate</small>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary translate-btn" onclick="translateText('${notesId}', '${releaseNotes.replace(/'/g, "\\'")}')">
+                            🌐 Translate to English
+                        </button>
                     </div>
                 `;
             }
@@ -648,6 +659,57 @@ window.addEventListener('click', function(event) {
         modal.style.display = 'none';
     }
 });
+
+// Translation function using a free translation API
+async function translateText(containerId, originalText) {
+    const container = document.getElementById(containerId);
+    const translateBtn = container.parentElement.querySelector('.translate-btn');
+    const translationSection = container.querySelector('.translation-section');
+    const translatedTextElement = container.querySelector('.translated-text');
+    
+    // Show loading state
+    translateBtn.disabled = true;
+    translateBtn.textContent = '🔄 Translating...';
+    
+    try {
+        // Using MyMemory Translation API (free tier)
+        const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(originalText)}&langpair=zh|en`);
+        const data = await response.json();
+        
+        if (data.responseStatus === 200 && data.responseData.translatedText) {
+            translatedTextElement.textContent = data.responseData.translatedText;
+            translationSection.style.display = 'block';
+            translateBtn.textContent = '✅ Translated';
+            translateBtn.disabled = true;
+        } else {
+            throw new Error('Translation failed');
+        }
+    } catch (error) {
+        console.error('Translation error:', error);
+        
+        // Fallback to basic word replacement for common firmware terms
+        const basicTranslation = originalText
+            .replace(/满电回差/g, 'Full charge return difference')
+            .replace(/由(\d+)调整到(\d+)/g, 'adjusted from $1 to $2')
+            .replace(/优化升级稳定性/g, 'optimized upgrade stability')
+            .replace(/修复/g, 'fixed')
+            .replace(/增加/g, 'added')
+            .replace(/改进/g, 'improved')
+            .replace(/版本/g, 'version')
+            .replace(/功能/g, 'function')
+            .replace(/问题/g, 'issue')
+            .replace(/性能/g, 'performance');
+        
+        translatedTextElement.innerHTML = `
+            <em>Automatic translation:</em><br>
+            ${basicTranslation}
+            <br><small style="color: #888;">(Basic translation - may not be fully accurate)</small>
+        `;
+        translationSection.style.display = 'block';
+        translateBtn.textContent = '⚠️ Basic Translation';
+        translateBtn.disabled = true;
+    }
+}
 
 // Fetch and display GitHub version info
 async function loadVersionInfo() {
