@@ -313,35 +313,18 @@ async function getFirmwareInfo(deviceId, deviceType = 'HMG-50', currentVersion =
 }
 
 // Download firmware file
-async function downloadFirmware(downloadUrl, filename) {
+function downloadFirmware(downloadUrl, filename) {
     try {
-        // Use Netlify function to proxy the download
-        const downloadParams = new URLSearchParams({
-            endpoint: downloadUrl,
-            download: 'true'
-        });
-        
-        const proxiedUrl = `/.netlify/functions/marstek-proxy?${downloadParams.toString()}`;
-        
         console.log('Downloading firmware from:', downloadUrl);
-        console.log('Using proxy:', proxiedUrl);
         
-        const response = await fetch(proxiedUrl);
-        if (!response.ok) {
-            throw new Error(`Download failed: ${response.status} ${response.statusText}`);
-        }
-
-        const blob = await response.blob();
-        
-        // Create download link
-        const url = window.URL.createObjectURL(blob);
+        // Direct download - create a temporary link and click it
         const a = document.createElement('a');
         a.style.display = 'none';
-        a.href = url;
+        a.href = downloadUrl;
         a.download = filename;
+        a.target = '_blank'; // Open in new tab as backup if download attribute doesn't work
         document.body.appendChild(a);
         a.click();
-        window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
         
         return true;
