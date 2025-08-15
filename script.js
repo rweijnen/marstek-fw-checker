@@ -256,7 +256,7 @@ async function getFirmwareInfo(deviceId, deviceType = 'HMG-50', currentVersion =
             mppt: false
         });
 
-        // Check both BMS updates (with current version) and EMS updates (with m=0)
+        // Check both BMS and EMS/Control updates based on your successful parameters
         const checks = [
             {
                 name: 'BMS/Battery',
@@ -270,7 +270,7 @@ async function getFirmwareInfo(deviceId, deviceType = 'HMG-50', currentVersion =
                     click: 'false',
                     is_fourDigit: isFourDigit,
                     m: currentVersion,  // Current firmware version for BMS updates
-                    sbv: '0',
+                    sbv: '0',  // sbv=0 for BMS check
                     mppt: '0',
                     inv: '0'
                 }
@@ -284,10 +284,10 @@ async function getFirmwareInfo(deviceId, deviceType = 'HMG-50', currentVersion =
                     token: currentToken,
                     device_type: deviceType,
                     mailbox: currentEmail,
-                    click: 'false',
+                    click: 'true',  // click=true for EMS check
                     is_fourDigit: isFourDigit,
-                    m: '0',  // m=0 for EMS/control firmware updates
-                    sbv: '0',
+                    m: currentVersion,  // m=151 (current version, not 0)
+                    sbv: '100',  // sbv=100 triggers EMS/control updates
                     mppt: '0',
                     inv: '0'
                 }
@@ -519,16 +519,36 @@ function displayFirmwareDetails(device, firmwareData) {
             }
         }
         
-        // Control firmware
+        // Control firmware (EMS)
         if (firmwareData.data?.control && firmwareData.data.control.version) {
             html += `
                 <div class="firmware-details" style="margin-top: 15px;">
                     <div class="firmware-detail">
-                        <label>Control Firmware</label>
+                        <label>Control Firmware (EMS)</label>
                         <value>Version ${firmwareData.data.control.version}</value>
                     </div>
                 </div>
             `;
+            
+            if (firmwareData.data.control.remark || firmwareData.data.control.chinese) {
+                const releaseNotes = firmwareData.data.control.remark || firmwareData.data.control.chinese;
+                const notesId = `notes_control_${Date.now()}`;
+                html += `
+                    <div class="release-notes">
+                        <h4>📝 Release Notes</h4>
+                        <div id="${notesId}" class="release-notes-content">
+                            <p class="original-text">${releaseNotes}</p>
+                            <div class="translation-section" style="display: none;">
+                                <p class="translated-text"></p>
+                                <small class="translation-note">Translation provided by Google Translate</small>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary translate-btn" onclick="translateText('${notesId}', '${releaseNotes.replace(/'/g, "\\'")}')">
+                            🌐 Translate to English
+                        </button>
+                    </div>
+                `;
+            }
             
             if (firmwareData.data.control.url) {
                 html += `
@@ -692,9 +712,16 @@ async function translateText(containerId, originalText) {
             .replace(/满电回差/g, 'Full charge return difference')
             .replace(/由(\d+)调整到(\d+)/g, 'adjusted from $1 to $2')
             .replace(/优化升级稳定性/g, 'optimized upgrade stability')
+            .replace(/支持对无密码WIFI进行配网功能/g, 'Support for WiFi configuration without password')
+            .replace(/优化一些已知问题/g, 'Optimized some known issues')
+            .replace(/配网功能/g, 'network configuration function')
+            .replace(/无密码WIFI/g, 'passwordless WiFi')
+            .replace(/已知问题/g, 'known issues')
             .replace(/修复/g, 'fixed')
             .replace(/增加/g, 'added')
             .replace(/改进/g, 'improved')
+            .replace(/优化/g, 'optimized')
+            .replace(/支持/g, 'support')
             .replace(/版本/g, 'version')
             .replace(/功能/g, 'function')
             .replace(/问题/g, 'issue')
