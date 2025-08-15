@@ -256,88 +256,55 @@ async function getFirmwareInfo(deviceId, deviceType = 'HMG-50', currentVersion =
             mppt: false
         });
 
-        // Check both BMS and EMS/Control updates based on your successful parameters
-        const checks = [
-            {
-                name: 'BMS/Battery',
-                params: {
-                    endpoint: '/ems/api/v2/checkSmallBalconyOTA',
-                    uid: deviceId,
-                    lang: 'English',
-                    token: currentToken,
-                    device_type: deviceType,
-                    mailbox: currentEmail,
-                    click: 'false',
-                    is_fourDigit: isFourDigit,
-                    m: currentVersion,  // Current firmware version for BMS updates
-                    sbv: '0',  // sbv=0 for BMS check
-                    mppt: '0',
-                    inv: '0'
-                }
-            },
-            {
-                name: 'EMS/Control',
-                params: {
-                    endpoint: '/ems/api/v2/checkSmallBalconyOTA',
-                    uid: deviceId,
-                    lang: 'English',
-                    token: currentToken,
-                    device_type: deviceType,
-                    mailbox: currentEmail,
-                    click: 'true',  // click=true for EMS check
-                    is_fourDigit: isFourDigit,
-                    m: currentVersion,  // m=151 (current version, not 0)
-                    sbv: '100',  // sbv=100 triggers EMS/control updates
-                    mppt: '0',
-                    inv: '0'
-                }
-            }
-        ];
-
-        const results = {};
-        
-        for (const check of checks) {
-            const proxiedUrl = `/.netlify/functions/marstek-proxy?${new URLSearchParams(check.params).toString()}`;
-            
-            console.log(`${check.name} firmware check:`, proxiedUrl);
-
-            const response = await fetch(proxiedUrl, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                }
-            });
-
-            if (response.ok) {
-                const responseText = await response.text();
-                console.log(`${check.name} response:`, responseText);
-                
-                try {
-                    const data = JSON.parse(responseText);
-                    results[check.name.toLowerCase().replace('/', '_')] = data;
-                } catch (e) {
-                    console.warn(`Failed to parse ${check.name} response:`, e);
-                }
-            }
-        }
-
-        // Combine results and show debugging info
-        console.log('All firmware check results:', results);
-        
-        const combinedData = {
-            code: results.bms_battery?.code || results.ems_control?.code || 0,
-            msg: 'Combined firmware check',
-            data: {
-                ...results.bms_battery?.data,
-                ...results.ems_control?.data
-            },
-            debug: {
-                bms_check: results.bms_battery,
-                ems_check: results.ems_control
-            }
+        // Since both API calls return the same data (device-specific firmware updates),
+        // we only need to make one call to get all available firmware for this device
+        const params = {
+            endpoint: '/ems/api/v2/checkSmallBalconyOTA',
+            uid: deviceId,
+            lang: 'English',
+            token: currentToken,
+            device_type: deviceType,
+            mailbox: currentEmail,
+            click: 'false',
+            is_fourDigit: isFourDigit,
+            m: currentVersion,
+            sbv: '0',
+            mppt: '0',
+            inv: '0'
         };
 
-        return combinedData;
+        const proxiedUrl = `/.netlify/functions/marstek-proxy?${new URLSearchParams(params).toString()}`;
+        
+        console.log('Firmware check:', proxiedUrl);
+
+        const response = await fetch(proxiedUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+        }
+
+        const responseText = await response.text();
+        console.log('Firmware response:', responseText);
+        
+        const firmwareData = JSON.parse(responseText);
+        
+        // Add debugging for empty firmware responses
+        const hasAnyFirmware = Object.values(firmwareData.data || {}).some(value => 
+            value && typeof value === 'object' && value.version
+        );
+        
+        console.log(`Device ${deviceId}: Has firmware updates: ${hasAnyFirmware}`);
+        if (!hasAnyFirmware) {
+            console.log(`Device ${deviceId} parameters:`, { deviceId, deviceType, currentVersion });
+            console.log(`Device ${deviceId} full response:`, firmwareData);
+        }
+
+        return firmwareData;
 
     } catch (error) {
         console.error('Firmware check failed:', error);
