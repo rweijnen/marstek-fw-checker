@@ -381,12 +381,19 @@ function displayDevices(devices) {
         devices.forEach(device => {
             const deviceCard = document.createElement('div');
             deviceCard.className = 'device-card';
+            
+            // Format the registration date
+            const registrationDate = device.date ? new Date(device.date).toLocaleDateString() : 'Unknown';
+            
             deviceCard.innerHTML = `
                 <div class="device-status"></div>
                 <div class="device-name">${device.name || `Device ${device.devid}`}</div>
-                <div class="device-info">ID: ${device.devid}</div>
                 <div class="device-info">Type: ${device.type || 'Unknown'}</div>
-                <div class="device-info">Status: Online</div>
+                <div class="device-info">Serial: ${device.sn || 'Not available'}</div>
+                <div class="device-info">MAC: ${device.mac || 'Unknown'}</div>
+                <div class="device-info">Bluetooth: ${device.bluetooth_name || 'Unknown'}</div>
+                <div class="device-info">Added: ${registrationDate}</div>
+                <div class="device-id">ID: ${device.devid}</div>
             `;
             
             deviceCard.addEventListener('click', () => {
