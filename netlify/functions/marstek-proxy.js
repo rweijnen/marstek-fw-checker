@@ -17,7 +17,7 @@ exports.handler = async (event, context) => {
 
   try {
     // Extract parameters from query string
-    const { endpoint, ...params } = event.queryStringParameters || {};
+    const { endpoint, download, ...params } = event.queryStringParameters || {};
     
     if (!endpoint) {
       return {
@@ -27,12 +27,20 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Build the target URL
-    const targetUrl = `https://eu.hamedata.com${endpoint}?${new URLSearchParams(params).toString()}`;
+    let targetUrl;
     
-    console.log('Proxying request to:', targetUrl);
+    // Handle downloads vs API calls differently
+    if (download === 'true') {
+      // For downloads, endpoint is the full URL
+      targetUrl = endpoint;
+      console.log('Proxying download request to:', targetUrl);
+    } else {
+      // For API calls, build URL with eu.hamedata.com base
+      targetUrl = `https://eu.hamedata.com${endpoint}?${new URLSearchParams(params).toString()}`;
+      console.log('Proxying API request to:', targetUrl);
+    }
 
-    // Make the request to Marstek API
+    // Make the request
     const response = await fetch(targetUrl, {
       method: event.httpMethod,
       headers: {
@@ -40,24 +48,48 @@ exports.handler = async (event, context) => {
       },
     });
 
-    // Get response text
-    const responseText = await response.text();
-    
-    console.log('Marstek API response:', {
-      status: response.status,
-      statusText: response.statusText,
-      body: responseText.substring(0, 200) + (responseText.length > 200 ? '...' : ''),
-    });
+    // Handle downloads vs API responses differently
+    if (download === 'true') {
+      // For downloads, return binary data
+      const buffer = await response.arrayBuffer();
+      
+      console.log('Download response:', {
+        status: response.status,
+        statusText: response.statusText,
+        contentType: response.headers.get('content-type'),
+        contentLength: response.headers.get('content-length'),
+      });
 
-    // Return the response with CORS headers
-    return {
-      statusCode: response.status,
-      headers: {
-        ...headers,
-        'Content-Type': response.headers.get('content-type') || 'text/plain',
-      },
-      body: responseText,
-    };
+      return {
+        statusCode: response.status,
+        headers: {
+          ...headers,
+          'Content-Type': response.headers.get('content-type') || 'application/octet-stream',
+          'Content-Length': response.headers.get('content-length'),
+          'Content-Disposition': response.headers.get('content-disposition') || 'attachment',
+        },
+        body: Buffer.from(buffer).toString('base64'),
+        isBase64Encoded: true,
+      };
+    } else {
+      // For API calls, return text
+      const responseText = await response.text();
+      
+      console.log('API response:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: responseText.substring(0, 200) + (responseText.length > 200 ? '...' : ''),
+      });
+
+      return {
+        statusCode: response.status,
+        headers: {
+          ...headers,
+          'Content-Type': response.headers.get('content-type') || 'text/plain',
+        },
+        body: responseText,
+      };
+    }
 
   } catch (error) {
     console.error('Proxy error:', error);

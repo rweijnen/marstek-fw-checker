@@ -315,7 +315,16 @@ async function getFirmwareInfo(deviceId, deviceType = 'HMG-50', currentVersion =
 // Download firmware file
 async function downloadFirmware(downloadUrl, filename) {
     try {
-        const proxiedUrl = currentCorsProxy ? currentCorsProxy + encodeURIComponent(downloadUrl) : downloadUrl;
+        // Use Netlify function to proxy the download
+        const downloadParams = new URLSearchParams({
+            endpoint: downloadUrl,
+            download: 'true'
+        });
+        
+        const proxiedUrl = `/.netlify/functions/marstek-proxy?${downloadParams.toString()}`;
+        
+        console.log('Downloading firmware from:', downloadUrl);
+        console.log('Using proxy:', proxiedUrl);
         
         const response = await fetch(proxiedUrl);
         if (!response.ok) {
@@ -338,6 +347,7 @@ async function downloadFirmware(downloadUrl, filename) {
         return true;
     } catch (error) {
         console.error('Download failed:', error);
+        alert(`Download failed: ${error.message}`);
         throw error;
     }
 }
