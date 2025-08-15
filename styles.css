@@ -465,6 +465,22 @@ footer p {
     margin-bottom: 10px;
 }
 
+.author-info {
+    margin: 20px 0;
+    padding: 15px 0;
+    border-top: 1px solid #555;
+    border-bottom: 1px solid #555;
+}
+
+.author-info a {
+    color: #4CAF50;
+    text-decoration: none;
+}
+
+.author-info a:hover {
+    text-decoration: underline;
+}
+
 .version-info {
     margin-top: 20px;
     padding-top: 15px;

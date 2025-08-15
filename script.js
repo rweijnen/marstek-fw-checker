@@ -707,33 +707,12 @@ async function translateText(containerId, originalText) {
     } catch (error) {
         console.error('Translation error:', error);
         
-        // Fallback to basic word replacement for common firmware terms
-        const basicTranslation = originalText
-            .replace(/满电回差/g, 'Full charge return difference')
-            .replace(/由(\d+)调整到(\d+)/g, 'adjusted from $1 to $2')
-            .replace(/优化升级稳定性/g, 'optimized upgrade stability')
-            .replace(/支持对无密码WIFI进行配网功能/g, 'Support for WiFi configuration without password')
-            .replace(/优化一些已知问题/g, 'Optimized some known issues')
-            .replace(/配网功能/g, 'network configuration function')
-            .replace(/无密码WIFI/g, 'passwordless WiFi')
-            .replace(/已知问题/g, 'known issues')
-            .replace(/修复/g, 'fixed')
-            .replace(/增加/g, 'added')
-            .replace(/改进/g, 'improved')
-            .replace(/优化/g, 'optimized')
-            .replace(/支持/g, 'support')
-            .replace(/版本/g, 'version')
-            .replace(/功能/g, 'function')
-            .replace(/问题/g, 'issue')
-            .replace(/性能/g, 'performance');
-        
         translatedTextElement.innerHTML = `
-            <em>Automatic translation:</em><br>
-            ${basicTranslation}
-            <br><small style="color: #888;">(Basic translation - may not be fully accurate)</small>
+            <em>Translation service unavailable.</em><br>
+            <small style="color: #888;">Please try again later or use an online translator.</small>
         `;
         translationSection.style.display = 'block';
-        translateBtn.textContent = '⚠️ Basic Translation';
+        translateBtn.textContent = '❌ Translation Failed';
         translateBtn.disabled = true;
     }
 }
