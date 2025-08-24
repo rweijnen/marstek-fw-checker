@@ -483,8 +483,11 @@ function displayFirmwareDetails(device, firmwareData) {
         </div>
     `;
     
-    // Firmware Status - Check if updates are actually available by looking at data content
-    const hasActualUpdates = (
+    // Check if this is a CT device response format (different structure)
+    const isCTResponse = firmwareData.newVerion && firmwareData.data && typeof firmwareData.data === 'string';
+    
+    // Firmware Status - Check if updates are actually available
+    const hasActualUpdates = isCTResponse || (
         (firmwareData.data?.control && firmwareData.data.control.version) ||
         (firmwareData.data?.bms && firmwareData.data.bms.version) ||
         (firmwareData.data?.mppt && firmwareData.data.mppt.version) ||
@@ -500,6 +503,61 @@ function displayFirmwareDetails(device, firmwareData) {
     if (hasActualUpdates) {
         html += '<p style="color: #FF9800; font-weight: 600;">New firmware versions are available for download!</p>';
         
+        // Handle CT device firmware (different response format)
+        if (isCTResponse) {
+            html += `
+                <div class="firmware-details">
+                    <div class="firmware-detail">
+                        <label>Firmware Type</label>
+                        <value>${firmwareData.otaWay || 'Standard'}</value>
+                    </div>
+                    <div class="firmware-detail">
+                        <label>New Version</label>
+                        <value>Version ${firmwareData.newVerion}</value>
+                    </div>
+                </div>
+            `;
+            
+            // Release notes with translation
+            if (firmwareData.english || firmwareData.chinese) {
+                const releaseNotes = firmwareData.english || firmwareData.chinese;
+                const notesId = `notes_ct_${Date.now()}`;
+                html += `
+                    <div class="release-notes">
+                        <h4>📝 Release Notes</h4>
+                        <div id="${notesId}" class="release-notes-content">
+                            <p class="original-text">${releaseNotes}</p>
+                            <div class="translation-section" style="display: none;">
+                                <p class="translated-text"></p>
+                                <small class="translation-note">Translation provided by Google Translate</small>
+                            </div>
+                        </div>
+                `;
+                
+                // Only show translate button if notes are in Chinese
+                if (!firmwareData.english && firmwareData.chinese) {
+                    html += `
+                        <button class="btn btn-secondary translate-btn" onclick="translateText('${notesId}', '${firmwareData.chinese.replace(/'/g, "\\'")}')">
+                            🌐 Translate to English
+                        </button>
+                    `;
+                }
+                
+                html += `</div>`;
+            }
+            
+            // Download button for CT devices
+            if (firmwareData.data) {
+                const filename = firmwareData.data.split('/').pop() || `ct_firmware_v${firmwareData.newVerion}.bin`;
+                html += `
+                    <div class="download-section">
+                        <button class="btn btn-primary" onclick="downloadFirmware('${firmwareData.data}', '${filename}')">
+                            📥 Download Firmware v${firmwareData.newVerion}
+                        </button>
+                    </div>
+                `;
+            }
+        }
         // BMS firmware (most common)
         if (firmwareData.data?.bms && firmwareData.data.bms.version) {
             html += `
