@@ -127,6 +127,19 @@
                 <span class="modal-close" onclick="closeConsoleModal()">&times;</span>
             </div>
             <div class="modal-body">
+                <div class="firmware-section" id="apiTestSection" style="display: none;">
+                    <h3>🔧 API Tester</h3>
+                    <div class="api-tester">
+                        <div style="margin-bottom: 15px;">
+                            <label for="apiUrl" style="display: block; margin-bottom: 5px; color: #e0e0e0; font-weight: 600;">API URL:</label>
+                            <input type="text" id="apiUrl" style="width: 100%; padding: 8px; background: #2d2d2d; color: #e0e0e0; border: 1px solid #555; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 12px;" placeholder="Enter API URL">
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <button class="btn btn-primary" onclick="testCustomUrl()">🚀 Test API Call</button>
+                            <button class="btn btn-secondary" onclick="resetToOriginal()">↺ Reset to Original</button>
+                        </div>
+                    </div>
+                </div>
                 <div class="firmware-section">
                     <h3>📡 Raw API Response</h3>
                     <div class="console-output">

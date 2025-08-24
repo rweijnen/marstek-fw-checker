@@ -954,6 +954,16 @@ async function showFirmwareRawData(deviceId) {
             response: firmwareData
         };
         
+        // Store original data for reset functionality
+        originalApiData = rawResponse;
+        
+        // Show API tester section and populate URL field
+        const apiTestSection = document.getElementById('apiTestSection');
+        const apiUrlField = document.getElementById('apiUrl');
+        
+        apiTestSection.style.display = 'block';
+        apiUrlField.value = fullUrl;
+        
         content.textContent = JSON.stringify(rawResponse, null, 2);
     } catch (error) {
         content.textContent = `Error fetching firmware data:\n${error.message}`;
@@ -1001,6 +1011,82 @@ function showDevicesRawData() {
 
 function closeConsoleModal() {
     document.getElementById('consoleModal').style.display = 'none';
+    // Hide API tester when closing
+    document.getElementById('apiTestSection').style.display = 'none';
+}
+
+// Store original API data for reset functionality
+let originalApiData = null;
+
+async function testCustomUrl() {
+    const customUrl = document.getElementById('apiUrl').value.trim();
+    const content = document.getElementById('consoleContent');
+    
+    if (!customUrl) {
+        content.textContent = 'Error: Please enter a valid API URL';
+        return;
+    }
+    
+    content.textContent = 'Testing custom API call...';
+    
+    try {
+        // Make the custom API call via proxy
+        const proxyUrl = `/.netlify/functions/marstek-proxy?endpoint=${encodeURIComponent(customUrl)}`;
+        
+        const response = await fetch(proxyUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            }
+        });
+        
+        const responseText = await response.text();
+        let responseData;
+        
+        try {
+            responseData = JSON.parse(responseText);
+        } catch (e) {
+            responseData = responseText;
+        }
+        
+        const testResult = {
+            customApiCall: {
+                url: customUrl,
+                proxyUrl: proxyUrl,
+                status: response.status,
+                method: 'GET'
+            },
+            timestamp: new Date().toISOString(),
+            response: responseData
+        };
+        
+        content.textContent = JSON.stringify(testResult, null, 2);
+        
+    } catch (error) {
+        const errorResult = {
+            customApiCall: {
+                url: customUrl,
+                error: error.message
+            },
+            timestamp: new Date().toISOString()
+        };
+        
+        content.textContent = JSON.stringify(errorResult, null, 2);
+    }
+}
+
+function resetToOriginal() {
+    if (originalApiData) {
+        const content = document.getElementById('consoleContent');
+        const apiUrl = document.getElementById('apiUrl');
+        
+        content.textContent = JSON.stringify(originalApiData, null, 2);
+        
+        // Reset URL field to original
+        if (originalApiData.apiCall && originalApiData.apiCall.fullUrl) {
+            apiUrl.value = originalApiData.apiCall.fullUrl;
+        }
+    }
 }
 
 function copyConsoleContent() {
