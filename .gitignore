@@ -1,0 +1,21 @@
+# Claude-specific files
+CLAUDE.md
+.claude/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Node modules (if added in future)
+node_modules/
+
+# Environment files
+.env
+.env.local
+
+# Logs
+*.log

@@ -256,6 +256,9 @@ async function getFirmwareInfo(deviceId, deviceType = 'HMG-50', currentVersion =
             mppt: false
         });
 
+        // Use version 0 for all devices to check for updates
+        const versionToUse = '0';
+
         // Since both API calls return the same data (device-specific firmware updates),
         // we only need to make one call to get all available firmware for this device
         const params = {
@@ -267,7 +270,7 @@ async function getFirmwareInfo(deviceId, deviceType = 'HMG-50', currentVersion =
             mailbox: currentEmail,
             click: 'false',
             is_fourDigit: isFourDigit,
-            m: currentVersion,
+            m: versionToUse,
             sbv: '0',
             mppt: '0',
             inv: '0'
@@ -275,7 +278,9 @@ async function getFirmwareInfo(deviceId, deviceType = 'HMG-50', currentVersion =
 
         const proxiedUrl = `/.netlify/functions/marstek-proxy?${new URLSearchParams(params).toString()}`;
         
-        console.log('Firmware check:', proxiedUrl);
+        console.log('Firmware check for device type:', deviceType);
+        console.log('Firmware check parameters:', params);
+        console.log('Firmware check URL:', proxiedUrl);
 
         const response = await fetch(proxiedUrl, {
             method: 'GET',
@@ -351,8 +356,25 @@ function displayDevices(devices) {
             // Format the registration date
             const registrationDate = device.date ? new Date(device.date).toLocaleDateString() : 'Unknown';
             
+            // Determine device image based on type
+            let deviceImage = '';
+            if (device.type && device.type.startsWith('VNSE')) {
+                // Venus E V3
+                deviceImage = `<img src="https://eu.marstekenergy.com/cdn/shop/files/1.1_a3444687-64a0-4ed7-8ed9-9f9966428883.jpg?v=1755566381" alt="Venus E V3" class="device-image">`;
+            } else if (device.type === 'CT003') {
+                // CT003 device
+                deviceImage = `<img src="https://eu.marstekenergy.com/cdn/shop/files/1_a21575ea-19c4-4f61-98d1-83e6112704a0.jpg?v=1739950399" alt="CT003" class="device-image">`;
+            } else if (device.type === 'CT002') {
+                // CT002 device
+                deviceImage = `<img src="https://eu.marstekenergy.com/cdn/shop/files/3_894259a1-4bf3-4f47-b87b-72efab6ea298.jpg?v=1740573047" alt="CT002" class="device-image">`;
+            } else if (device.type === 'HMG-50' || !device.type) {
+                // Venus E V1/V2 or default
+                deviceImage = `<img src="https://eu.marstekenergy.com/cdn/shop/files/1_2_d5e4109f-859e-46be-be9b-40e262490d4f.jpg?v=1740540638" alt="Venus E" class="device-image">`;
+            }
+            
             deviceCard.innerHTML = `
                 <div class="device-status"></div>
+                ${deviceImage}
                 <div class="device-name">${device.name || `Device ${device.devid}`}</div>
                 <div class="device-info">Type: ${device.type || 'Unknown'}</div>
                 <div class="device-info">Serial: ${device.sn || 'Not available'}</div>
@@ -716,6 +738,15 @@ async function loadVersionInfo() {
     }
 }
 
+// WIP modal functions
+function showWipInfo() {
+    document.getElementById('wipModal').style.display = 'block';
+}
+
+function closeWipModal() {
+    document.getElementById('wipModal').style.display = 'none';
+}
+
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Marstek Firmware Query Tool loaded');
@@ -732,4 +763,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Load version information
     loadVersionInfo();
+    
+    // Close WIP modal when clicking outside
+    window.addEventListener('click', function(event) {
+        const wipModal = document.getElementById('wipModal');
+        if (event.target === wipModal) {
+            wipModal.style.display = 'none';
+        }
+    });
 });

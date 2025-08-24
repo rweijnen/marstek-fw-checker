@@ -11,6 +11,11 @@
         <header>
             <h1>Marstek Firmware Query Tool</h1>
             <p>Check for firmware updates for your Marstek devices</p>
+            <div class="work-in-progress-banner">
+                <span class="wip-icon">🚧</span>
+                <span class="wip-text">Work in Progress</span>
+                <button class="info-btn" onclick="showWipInfo()" title="Click for more information">ℹ️</button>
+            </div>
         </header>
 
         <div class="form-container">
@@ -56,6 +61,51 @@
         <div id="error" class="error" style="display: none;">
             <h2>Error</h2>
             <div id="errorContent"></div>
+        </div>
+    </div>
+
+    <!-- WIP Info Modal -->
+    <div id="wipModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>🚧 Work in Progress Notice</h2>
+                <span class="modal-close" onclick="closeWipModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="firmware-section">
+                    <h3>⚠️ Current Development Status</h3>
+                    <p>We are actively working on improving support for newer Marstek devices, particularly:</p>
+                    <ul style="color: #e0e0e0; margin: 15px 0;">
+                        <li><strong>Venus E V3 (VNSE3-0)</strong> - Enhanced firmware detection</li>
+                        <li><strong>CT002/CT003</strong> - Device recognition and updates</li>
+                        <li><strong>API Parameters</strong> - Optimizing version detection for all models</li>
+                    </ul>
+                    
+                    <h3 style="margin-top: 20px;">🔄 What This Means</h3>
+                    <p>During this transition period, you may experience:</p>
+                    <ul style="color: #e0e0e0; margin: 15px 0;">
+                        <li>Inconsistent firmware detection for newer models</li>
+                        <li>Some devices showing "No updates" when updates exist</li>
+                        <li>Changes in how firmware versions are reported</li>
+                    </ul>
+                    
+                    <h3 style="margin-top: 20px;">✅ What's Working</h3>
+                    <p>The following features remain fully functional:</p>
+                    <ul style="color: #e0e0e0; margin: 15px 0;">
+                        <li>Device authentication and listing</li>
+                        <li>Venus E V1/V2 (HMG-50) firmware checks</li>
+                        <li>Firmware download functionality</li>
+                    </ul>
+                    
+                    <p style="margin-top: 20px; padding: 15px; background: #404040; border-radius: 6px; border-left: 3px solid #FF9800;">
+                        <strong>Note:</strong> We're using firmware version "0" as a baseline to detect all available updates. 
+                        This may show more updates than actually needed for your device. Please verify compatibility before installing.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeWipModal()">Got it!</button>
+            </div>
         </div>
     </div>
 
