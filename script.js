@@ -1030,8 +1030,16 @@ async function testCustomUrl() {
     content.textContent = 'Testing custom API call...';
     
     try {
-        // Make the custom API call via proxy
-        const proxyUrl = `/.netlify/functions/marstek-proxy?endpoint=${encodeURIComponent(customUrl)}`;
+        // Parse the URL to separate endpoint and parameters
+        const urlObj = new URL(customUrl);
+        const endpoint = urlObj.pathname + urlObj.search; // e.g., "/ems/api/v1/checkAcCoupleOta?m=101&uid=..."
+        
+        // Build proxy URL with just the endpoint (including query string)
+        const proxyUrl = `/.netlify/functions/marstek-proxy?endpoint=${encodeURIComponent(endpoint)}`;
+        
+        console.log('Testing custom URL:', customUrl);
+        console.log('Extracted endpoint:', endpoint);
+        console.log('Proxy URL:', proxyUrl);
         
         const response = await fetch(proxyUrl, {
             method: 'GET',
@@ -1041,6 +1049,8 @@ async function testCustomUrl() {
         });
         
         const responseText = await response.text();
+        console.log('Custom API response:', responseText);
+        
         let responseData;
         
         try {
@@ -1051,9 +1061,11 @@ async function testCustomUrl() {
         
         const testResult = {
             customApiCall: {
-                url: customUrl,
+                originalUrl: customUrl,
+                extractedEndpoint: endpoint,
                 proxyUrl: proxyUrl,
                 status: response.status,
+                statusText: response.statusText,
                 method: 'GET'
             },
             timestamp: new Date().toISOString(),
@@ -1063,10 +1075,13 @@ async function testCustomUrl() {
         content.textContent = JSON.stringify(testResult, null, 2);
         
     } catch (error) {
+        console.error('Custom API test error:', error);
+        
         const errorResult = {
             customApiCall: {
                 url: customUrl,
-                error: error.message
+                error: error.message,
+                stack: error.stack
             },
             timestamp: new Date().toISOString()
         };
