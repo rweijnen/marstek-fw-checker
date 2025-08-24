@@ -401,7 +401,7 @@ function displayDevices(devices) {
                 <div class="device-status"></div>
                 ${deviceImage}
                 <button class="console-btn" onclick="showDeviceRawData(event, '${device.devid}')" title="Show raw device data">
-                    <span class="console-icon">⚡</span>
+                    <span class="console-icon">▢</span>
                 </button>
                 <div class="device-content">
                     <div class="device-name">${device.name || `Device ${device.devid}`}</div>
@@ -683,7 +683,7 @@ function displayFirmwareDetails(device, firmwareData) {
         <div class="firmware-section">
             <h3>🔧 Technical Details 
                 <button class="console-btn inline" onclick="showFirmwareRawData('${device.devid}')" title="Show raw API response">
-                    <span class="console-icon">⚡</span>
+                    <span class="console-icon">▢</span>
                 </button>
             </h3>
             <div class="release-notes">

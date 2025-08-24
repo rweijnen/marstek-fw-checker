@@ -291,10 +291,10 @@ small {
 }
 
 .device-card .console-btn {
-    top: 50px;
-    left: 15px;
-    width: 24px;
-    height: 24px;
+    bottom: 15px;
+    right: 15px;
+    width: 26px;
+    height: 26px;
     padding: 0;
     display: flex;
     align-items: center;
@@ -302,8 +302,9 @@ small {
 }
 
 .console-icon {
-    font-size: 12px;
+    font-size: 14px;
     line-height: 1;
+    font-weight: bold;
 }
 
 .device-image {
