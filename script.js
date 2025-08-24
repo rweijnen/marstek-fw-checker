@@ -520,8 +520,13 @@ function displayFirmwareDetails(device, firmwareData) {
             
             // Release notes with translation
             if (firmwareData.english || firmwareData.chinese) {
+                // For CT devices, 'english' field often contains Chinese text
                 const releaseNotes = firmwareData.english || firmwareData.chinese;
                 const notesId = `notes_ct_${Date.now()}`;
+                
+                // Check if the text contains Chinese characters
+                const containsChinese = /[\u4e00-\u9fa5]/.test(releaseNotes);
+                
                 html += `
                     <div class="release-notes">
                         <h4>📝 Release Notes</h4>
@@ -534,10 +539,11 @@ function displayFirmwareDetails(device, firmwareData) {
                         </div>
                 `;
                 
-                // Only show translate button if notes are in Chinese
-                if (!firmwareData.english && firmwareData.chinese) {
+                // Show translate button if text contains Chinese characters
+                if (containsChinese) {
+                    const notesForButton = releaseNotes.replace(/'/g, "\\'").replace(/\n/g, "\\n");
                     html += `
-                        <button class="btn btn-secondary translate-btn" onclick="translateText('${notesId}', '${firmwareData.chinese.replace(/'/g, "\\'")}')">
+                        <button class="btn btn-secondary translate-btn" onclick="translateText('${notesId}', '${notesForButton}')">
                             🌐 Translate to English
                         </button>
                     `;
@@ -745,8 +751,15 @@ document.getElementById('logoutBtn').addEventListener('click', function() {
 });
 
 // Modal close handlers
-document.querySelector('.modal-close').addEventListener('click', function() {
-    document.getElementById('firmwareModal').style.display = 'none';
+// Get all modal close buttons and add event listeners
+document.querySelectorAll('.modal-close').forEach(function(closeBtn) {
+    closeBtn.addEventListener('click', function() {
+        // Find the parent modal and close it
+        const modal = this.closest('.modal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    });
 });
 
 document.getElementById('closeModalBtn').addEventListener('click', function() {
