@@ -892,18 +892,66 @@ async function showFirmwareRawData(deviceId) {
     modal.style.display = 'block';
     
     try {
-        // Make the same API call as the firmware check
+        // Determine which API endpoint and parameters will be used
+        const deviceNameUpper = device.name ? device.name.toUpperCase() : '';
+        const isCTDevice = (device.type && (device.type.startsWith('CT') || device.type.includes('CT('))) || 
+                           deviceNameUpper.includes('CT002') || deviceNameUpper.includes('CT003') ||
+                           deviceNameUpper.includes('CT(002)') || deviceNameUpper.includes('CT(003)');
+        
+        let apiUrl, params;
+        if (isCTDevice) {
+            // CT device endpoint
+            apiUrl = 'https://eu.hamedata.com/ems/api/v1/checkAcCoupleOta';
+            params = {
+                'm': '100',
+                'uid': device.devid,
+                'lang': 'English',
+                'click': 'true',
+                'token': currentToken,
+                'device_type': device.type,
+                'mailbox': currentEmail
+            };
+        } else {
+            // Venus E and other devices
+            apiUrl = 'https://eu.hamedata.com/ems/api/v2/checkSmallBalconyOTA';
+            params = {
+                'uid': device.devid,
+                'lang': 'English',
+                'token': currentToken,
+                'device_type': device.type,
+                'mailbox': currentEmail,
+                'click': 'false',
+                'is_fourDigit': '{"control":false,"bms":false,"micro":false,"mppt":false}',
+                'm': '100',
+                'sbv': '0',
+                'mppt': '0',
+                'inv': '0'
+            };
+        }
+        
+        // Build full URL with parameters
+        const urlParams = new URLSearchParams(params);
+        const fullUrl = `${apiUrl}?${urlParams.toString()}`;
+        
+        // Make the API call
         const firmwareData = await getFirmwareInfo(device.devid, device.type || 'HMG-50', '100', device.name);
         
-        // Show raw response
+        // Show raw response with API details
         const rawResponse = {
             device: {
                 id: device.devid,
                 name: device.name,
-                type: device.type
+                type: device.type,
+                detectedAs: isCTDevice ? 'CT Device' : 'Standard Device'
+            },
+            apiCall: {
+                endpoint: isCTDevice ? '/ems/api/v1/checkAcCoupleOta' : '/ems/api/v2/checkSmallBalconyOTA',
+                fullUrl: fullUrl,
+                method: 'GET',
+                parameters: params
             },
             timestamp: new Date().toISOString(),
-            apiResponse: firmwareData
+            response: firmwareData
         };
         
         content.textContent = JSON.stringify(rawResponse, null, 2);
