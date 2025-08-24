@@ -256,8 +256,9 @@ async function getFirmwareInfo(deviceId, deviceType = 'HMG-50', currentVersion =
             mppt: false
         });
 
-        // Use version 0 for all devices to check for updates
-        const versionToUse = '0';
+        // Use version 100 for all devices to check for updates
+        // Version 0 causes "version param error" from the API
+        const versionToUse = '100';
 
         // Since both API calls return the same data (device-specific firmware updates),
         // we only need to make one call to get all available firmware for this device
@@ -374,10 +375,14 @@ function displayDevices(devices) {
             
             deviceCard.innerHTML = `
                 <div class="device-status"></div>
-                ${deviceImage}
-                <div class="device-name">${device.name || `Device ${device.devid}`}</div>
-                <div class="device-info">Type: ${device.type || 'Unknown'}</div>
-                <div class="device-info">Serial: ${device.sn || 'Not available'}</div>
+                <div class="device-header">
+                    ${deviceImage}
+                    <div class="device-details">
+                        <div class="device-name">${device.name || `Device ${device.devid}`}</div>
+                        <div class="device-info">Type: ${device.type || 'Unknown'}</div>
+                        <div class="device-info">Serial: ${device.sn || 'Not available'}</div>
+                    </div>
+                </div>
                 <div class="device-info">MAC: ${device.mac || 'Unknown'}</div>
                 <div class="device-info">Bluetooth: ${device.bluetooth_name || 'Unknown'}</div>
                 <div class="device-info">Added: ${registrationDate}</div>
