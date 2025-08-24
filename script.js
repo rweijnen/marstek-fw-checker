@@ -400,6 +400,9 @@ function displayDevices(devices) {
             deviceCard.innerHTML = `
                 <div class="device-status"></div>
                 ${deviceImage}
+                <button class="console-btn" onclick="showDeviceRawData(event, '${device.devid}')" title="Show raw device data">
+                    <span class="console-icon">⚡</span>
+                </button>
                 <div class="device-content">
                     <div class="device-name">${device.name || `Device ${device.devid}`}</div>
                     <div class="device-info">Type: ${device.type || 'Unknown'}</div>
@@ -678,9 +681,13 @@ function displayFirmwareDetails(device, firmwareData) {
     // Raw API Response (for debugging)
     html += `
         <div class="firmware-section">
-            <h3>🔧 Technical Details</h3>
+            <h3>🔧 Technical Details 
+                <button class="console-btn inline" onclick="showFirmwareRawData('${device.devid}')" title="Show raw API response">
+                    <span class="console-icon">⚡</span>
+                </button>
+            </h3>
             <div class="release-notes">
-                <h4>Combined API Response</h4>
+                <h4>API Response Summary</h4>
                 <pre style="background: #2d2d2d; color: #e0e0e0; padding: 15px; border-radius: 6px; overflow-x: auto; font-size: 12px; max-height: 200px;">${JSON.stringify(firmwareData, null, 2)}</pre>
             </div>
         </div>
@@ -721,6 +728,8 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         const authResult = await authenticateUser(email, password);
         
         if (authResult.success) {
+            // Store device list for console access
+            sessionStorage.setItem('deviceList', JSON.stringify(authResult.devices));
             displayDevices(authResult.devices);
         } else {
             throw new Error('Authentication failed');
@@ -846,6 +855,96 @@ function closeWipModal() {
     document.getElementById('wipModal').style.display = 'none';
 }
 
+// Console modal functions
+function showDeviceRawData(event, deviceId) {
+    event.stopPropagation(); // Prevent device card click
+    
+    // Find the device data
+    const devices = JSON.parse(sessionStorage.getItem('deviceList') || '[]');
+    const device = devices.find(d => d.devid === deviceId);
+    
+    if (device) {
+        const modal = document.getElementById('consoleModal');
+        const title = document.getElementById('consoleModalTitle');
+        const content = document.getElementById('consoleContent');
+        
+        title.textContent = `Raw Device Data - ${device.name || deviceId}`;
+        content.textContent = JSON.stringify(device, null, 2);
+        modal.style.display = 'block';
+    }
+}
+
+async function showFirmwareRawData(deviceId) {
+    const devices = JSON.parse(sessionStorage.getItem('deviceList') || '[]');
+    const device = devices.find(d => d.devid === deviceId);
+    
+    if (!device) return;
+    
+    const modal = document.getElementById('consoleModal');
+    const title = document.getElementById('consoleModalTitle');
+    const content = document.getElementById('consoleContent');
+    
+    title.textContent = `Raw Firmware API Response - ${device.name || deviceId}`;
+    content.textContent = 'Loading firmware data...';
+    modal.style.display = 'block';
+    
+    try {
+        // Make the same API call as the firmware check
+        const firmwareData = await getFirmwareInfo(device.devid, device.type || 'HMG-50', '100', device.name);
+        
+        // Show raw response
+        const rawResponse = {
+            device: {
+                id: device.devid,
+                name: device.name,
+                type: device.type
+            },
+            timestamp: new Date().toISOString(),
+            apiResponse: firmwareData
+        };
+        
+        content.textContent = JSON.stringify(rawResponse, null, 2);
+    } catch (error) {
+        content.textContent = `Error fetching firmware data:\n${error.message}`;
+    }
+}
+
+function closeConsoleModal() {
+    document.getElementById('consoleModal').style.display = 'none';
+}
+
+function copyConsoleContent() {
+    const content = document.getElementById('consoleContent');
+    const text = content.textContent;
+    
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+            // Show temporary feedback
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '✅ Copied!';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 2000);
+        });
+    } else {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.textContent = '✅ Copied!';
+        setTimeout(() => {
+            btn.textContent = originalText;
+        }, 2000);
+    }
+}
+
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Marstek Firmware Query Tool loaded');
@@ -863,11 +962,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load version information
     loadVersionInfo();
     
-    // Close WIP modal when clicking outside
+    // Close modals when clicking outside
     window.addEventListener('click', function(event) {
         const wipModal = document.getElementById('wipModal');
+        const consoleModal = document.getElementById('consoleModal');
+        
         if (event.target === wipModal) {
             wipModal.style.display = 'none';
+        }
+        if (event.target === consoleModal) {
+            consoleModal.style.display = 'none';
         }
     });
 });

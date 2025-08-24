@@ -115,6 +115,30 @@
         </div>
     </div>
 
+    <!-- Console Data Modal -->
+    <div id="consoleModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2 id="consoleModalTitle">Raw API Data</h2>
+                <span class="modal-close" onclick="closeConsoleModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="firmware-section">
+                    <h3>📡 Raw API Response</h3>
+                    <div class="console-output">
+                        <pre id="consoleContent" style="background: #1a1a1a; color: #00ff41; padding: 20px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.4; overflow-x: auto; white-space: pre-wrap; border: 1px solid #333; max-height: 500px; overflow-y: auto;">
+Loading...
+                        </pre>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="copyConsoleContent()">📋 Copy to Clipboard</button>
+                <button class="btn btn-primary" onclick="closeConsoleModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Firmware Details Modal -->
     <div id="firmwareModal" class="modal" style="display: none;">
         <div class="modal-content">
