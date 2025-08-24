@@ -243,43 +243,65 @@ async function authenticateUser(email, password) {
 }
 
 // Get firmware information for a specific device
-async function getFirmwareInfo(deviceId, deviceType = 'HMG-50', currentVersion = '151') {
+async function getFirmwareInfo(deviceId, deviceType = 'HMG-50', currentVersion = '151', deviceName = '') {
     if (!currentToken) {
         throw new Error('Not authenticated. Please login first.');
     }
 
     try {
-        const isFourDigit = JSON.stringify({
-            control: false,
-            bms: false,
-            micro: false,
-            mppt: false
-        });
+        // Check if this is a CT device by type or name
+        const deviceNameUpper = deviceName ? deviceName.toUpperCase() : '';
+        const isCTDevice = (deviceType && (deviceType.startsWith('CT') || deviceType.includes('CT('))) || 
+                           deviceNameUpper.includes('CT002') || deviceNameUpper.includes('CT003') ||
+                           deviceNameUpper.includes('CT(002)') || deviceNameUpper.includes('CT(003)');
+        
+        let params;
+        
+        if (isCTDevice) {
+            // CT devices use a different API endpoint
+            params = {
+                endpoint: '/ems/api/v1/checkAcCoupleOta',
+                m: '100',  // Using version 100 as baseline
+                uid: deviceId,
+                lang: 'English',
+                click: 'true',
+                token: currentToken,
+                device_type: deviceType,
+                mailbox: currentEmail
+            };
+        } else {
+            // Venus E and other devices use the original endpoint
+            const isFourDigit = JSON.stringify({
+                control: false,
+                bms: false,
+                micro: false,
+                mppt: false
+            });
 
-        // Use version 100 for all devices to check for updates
-        // Version 0 causes "version param error" from the API
-        const versionToUse = '100';
+            // Use version 100 for all devices to check for updates
+            // Version 0 causes "version param error" from the API
+            const versionToUse = '100';
 
-        // Since both API calls return the same data (device-specific firmware updates),
-        // we only need to make one call to get all available firmware for this device
-        const params = {
-            endpoint: '/ems/api/v2/checkSmallBalconyOTA',
-            uid: deviceId,
-            lang: 'English',
-            token: currentToken,
-            device_type: deviceType,
-            mailbox: currentEmail,
-            click: 'false',
-            is_fourDigit: isFourDigit,
-            m: versionToUse,
-            sbv: '0',
-            mppt: '0',
-            inv: '0'
-        };
+            params = {
+                endpoint: '/ems/api/v2/checkSmallBalconyOTA',
+                uid: deviceId,
+                lang: 'English',
+                token: currentToken,
+                device_type: deviceType,
+                mailbox: currentEmail,
+                click: 'false',
+                is_fourDigit: isFourDigit,
+                m: versionToUse,
+                sbv: '0',
+                mppt: '0',
+                inv: '0'
+            };
+        }
 
         const proxiedUrl = `/.netlify/functions/marstek-proxy?${new URLSearchParams(params).toString()}`;
         
         console.log('Firmware check for device type:', deviceType);
+        console.log('Using endpoint:', params.endpoint);
         console.log('Firmware check parameters:', params);
         console.log('Firmware check URL:', proxiedUrl);
 
@@ -357,36 +379,36 @@ function displayDevices(devices) {
             // Format the registration date
             const registrationDate = device.date ? new Date(device.date).toLocaleDateString() : 'Unknown';
             
-            // Determine device image based on type
+            // Determine device image based on type or name
             let deviceImage = '';
-            if (device.type && device.type.startsWith('VNSE')) {
+            const deviceName = device.name ? device.name.toUpperCase() : '';
+            
+            if ((device.type && device.type.startsWith('VNSE')) || deviceName.includes('VENUS E V3') || deviceName.includes('VNSE')) {
                 // Venus E V3
                 deviceImage = `<img src="https://eu.marstekenergy.com/cdn/shop/files/1.1_a3444687-64a0-4ed7-8ed9-9f9966428883.jpg?v=1755566381" alt="Venus E V3" class="device-image">`;
-            } else if (device.type === 'CT003') {
+            } else if ((device.type && (device.type === 'CT003' || device.type === 'CT(003)')) || deviceName.includes('CT003') || deviceName.includes('CT(003)')) {
                 // CT003 device
                 deviceImage = `<img src="https://eu.marstekenergy.com/cdn/shop/files/1_a21575ea-19c4-4f61-98d1-83e6112704a0.jpg?v=1739950399" alt="CT003" class="device-image">`;
-            } else if (device.type === 'CT002') {
+            } else if ((device.type && (device.type === 'CT002' || device.type === 'CT(002)')) || deviceName.includes('CT002') || deviceName.includes('CT(002)')) {
                 // CT002 device
                 deviceImage = `<img src="https://eu.marstekenergy.com/cdn/shop/files/3_894259a1-4bf3-4f47-b87b-72efab6ea298.jpg?v=1740573047" alt="CT002" class="device-image">`;
-            } else if (device.type === 'HMG-50' || !device.type) {
+            } else if (device.type === 'HMG-50' || deviceName.includes('VENUS E') || !device.type) {
                 // Venus E V1/V2 or default
                 deviceImage = `<img src="https://eu.marstekenergy.com/cdn/shop/files/1_2_d5e4109f-859e-46be-be9b-40e262490d4f.jpg?v=1740540638" alt="Venus E" class="device-image">`;
             }
             
             deviceCard.innerHTML = `
                 <div class="device-status"></div>
-                <div class="device-header">
-                    ${deviceImage}
-                    <div class="device-details">
-                        <div class="device-name">${device.name || `Device ${device.devid}`}</div>
-                        <div class="device-info">Type: ${device.type || 'Unknown'}</div>
-                        <div class="device-info">Serial: ${device.sn || 'Not available'}</div>
-                    </div>
+                ${deviceImage}
+                <div class="device-content">
+                    <div class="device-name">${device.name || `Device ${device.devid}`}</div>
+                    <div class="device-info">Type: ${device.type || 'Unknown'}</div>
+                    <div class="device-info">Serial: ${device.sn || 'Not available'}</div>
+                    <div class="device-info">MAC: ${device.mac || 'Unknown'}</div>
+                    <div class="device-info">Bluetooth: ${device.bluetooth_name || 'Unknown'}</div>
+                    <div class="device-info">Added: ${registrationDate}</div>
+                    <div class="device-id">ID: ${device.devid}</div>
                 </div>
-                <div class="device-info">MAC: ${device.mac || 'Unknown'}</div>
-                <div class="device-info">Bluetooth: ${device.bluetooth_name || 'Unknown'}</div>
-                <div class="device-info">Added: ${registrationDate}</div>
-                <div class="device-id">ID: ${device.devid}</div>
             `;
             
             deviceCard.addEventListener('click', () => {
@@ -416,7 +438,8 @@ async function showFirmwareDetails(device) {
     modal.style.display = 'block';
     
     try {
-        const firmwareData = await getFirmwareInfo(device.devid, device.type || 'HMG-50');
+        // Pass both device type and name for better detection
+        const firmwareData = await getFirmwareInfo(device.devid, device.type || 'HMG-50', '100', device.name);
         displayFirmwareDetails(device, firmwareData);
     } catch (error) {
         modalBody.innerHTML = `

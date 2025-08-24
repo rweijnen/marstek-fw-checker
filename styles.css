@@ -189,9 +189,7 @@ small {
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
-    min-height: 140px;
-    display: flex;
-    flex-direction: column;
+    min-height: 160px;
 }
 
 .device-card:hover {
@@ -238,20 +236,16 @@ small {
     background: #4CAF50;
 }
 
-.device-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 15px;
-    margin-bottom: 10px;
-}
-
-.device-details {
-    flex: 1;
+.device-content {
+    padding-right: 90px; /* Make room for the image */
 }
 
 .device-image {
-    width: 60px;
-    height: 60px;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 75px;
+    height: 75px;
     object-fit: contain;
     border-radius: 8px;
     /* Dark overlay to blend white backgrounds */
@@ -261,12 +255,11 @@ small {
     filter: contrast(1.1) brightness(0.85) invert(0.05);
     mix-blend-mode: multiply;
     transition: all 0.3s ease;
-    flex-shrink: 0;
 }
 
 .device-card:hover .device-image {
     filter: contrast(1.2) brightness(0.9) invert(0);
-    transform: scale(1.08);
+    transform: scale(1.1);
 }
 
 /* Buttons */
