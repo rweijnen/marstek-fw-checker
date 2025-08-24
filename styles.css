@@ -496,6 +496,12 @@ li {
     backdrop-filter: blur(4px);
 }
 
+/* Console modal needs higher z-index to appear above firmware modal */
+.console-modal {
+    z-index: 1100;
+    background: rgba(0, 0, 0, 0.8);
+}
+
 .modal-content {
     background: #2d2d2d;
     margin: 5% auto;
