@@ -132,6 +132,11 @@ header p {
     border: 1px solid #404040;
 }
 
+.login-section h2 {
+    color: #e0e0e0;
+    margin-bottom: 15px;
+}
+
 .devices-section {
     background: #3a3a3a;
     padding: 25px;
