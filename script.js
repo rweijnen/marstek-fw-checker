@@ -212,6 +212,9 @@ async function authenticateUser(email, password) {
         const authText = await authResponse.text();
         console.log('Auth response:', authText);
 
+        // Store raw response for console viewing
+        sessionStorage.setItem('rawAuthResponse', authText);
+
         let authData;
         try {
             authData = JSON.parse(authText);
@@ -907,6 +910,45 @@ async function showFirmwareRawData(deviceId) {
     } catch (error) {
         content.textContent = `Error fetching firmware data:\n${error.message}`;
     }
+}
+
+function showDevicesRawData() {
+    const rawAuthResponse = sessionStorage.getItem('rawAuthResponse');
+    const devices = JSON.parse(sessionStorage.getItem('deviceList') || '[]');
+    
+    const modal = document.getElementById('consoleModal');
+    const title = document.getElementById('consoleModalTitle');
+    const content = document.getElementById('consoleContent');
+    
+    title.textContent = 'Raw Devices API Response';
+    
+    if (rawAuthResponse) {
+        // Show the complete raw authentication response
+        try {
+            const parsedResponse = JSON.parse(rawAuthResponse);
+            const formattedResponse = {
+                endpoint: '/app/Solar/v2_get_device.php',
+                timestamp: new Date().toISOString(),
+                response: parsedResponse,
+                deviceCount: devices.length
+            };
+            content.textContent = JSON.stringify(formattedResponse, null, 2);
+        } catch (e) {
+            // If not valid JSON, show as text
+            content.textContent = `Raw Authentication Response:\n\n${rawAuthResponse}`;
+        }
+    } else {
+        // Fallback to device list
+        const fallbackData = {
+            endpoint: '/app/Solar/v2_get_device.php',
+            timestamp: new Date().toISOString(),
+            note: 'Raw response not available, showing parsed device list',
+            devices: devices
+        };
+        content.textContent = JSON.stringify(fallbackData, null, 2);
+    }
+    
+    modal.style.display = 'block';
 }
 
 function closeConsoleModal() {
