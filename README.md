@@ -1,175 +1,174 @@
-# Marstek Firmware Query Web Tool
+# Marstek Firmware Checker
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/464bc73e-9763-45eb-afd5-502cb19dbe8b/deploy-status)](https://app.netlify.com/projects/marstek-fw-checker/deploys)
 
-🔋 **Web-based firmware update checker for Marstek devices**
+🔋 **Modern web-based firmware checker and archive system for Marstek solar/battery devices**
 
-This tool converts the original PowerShell script to a modern web interface with built-in CORS proxy hosted on Netlify.
+A comprehensive tool that checks firmware updates for Marstek equipment and maintains a community-driven firmware archive.
 
-## 🚀 Features
+## ✨ Features
 
+### Core Functionality
 - **Device Authentication**: Login with your Marstek account credentials
-- **Device Discovery**: Automatically list all devices in your account
-- **Firmware Checking**: Click on any device to check for available firmware updates
-- **Download Support**: Direct download links for firmware files
-- **Release Notes**: View firmware release notes and changelog information
-- **Dark Theme**: Clean, modern interface inspired by the Venus Monitor tool
-- **CORS Proxy Support**: Handles browser security restrictions
+- **Device Discovery**: Visual grid display of all registered devices with product images
+- **Multi-Device Support**: Venus E V1/V2 (HMG-50), Venus E V3 (VNSE3-0), CT002/CT003 devices
+- **Firmware Checking**: One-click firmware update checking for all device types
+- **Direct Downloads**: Download firmware files directly from the interface
+- **Release Notes**: View and translate firmware release notes from Chinese to English
 
-## 📂 Files
+### Archive System 🗃️
+- **Community Archive**: Automated firmware preservation in GitHub repository
+- **Archive Status**: Real-time checking if firmware versions are already archived
+- **One-Click Submission**: Submit missing firmware versions to the community archive
+- **Duplicate Prevention**: Smart detection to prevent multiple submissions of same firmware
+- **GitHub Integration**: Issues and workflows for automated firmware downloading
 
-- `index.html` - Main web interface
-- `script.js` - JavaScript functionality and API calls
-- `styles.css` - Dark theme styling
-- `README.md` - This documentation file
+### Technical Features
+- **No CORS Issues**: Built-in Netlify Functions proxy - no external CORS services needed
+- **Debug Console**: Raw API response viewer with interactive API tester
+- **Dark Theme**: Modern interface with device-specific product images
+- **Mobile Responsive**: Works on all devices and screen sizes
+- **Session Storage**: Persistent device data for debugging and development
 
-## 🌐 GitHub Pages Deployment
+## 🚀 Live Demo
 
-### Method 1: Direct Repository Upload
+Visit: **[https://marstek-fw-checker.netlify.app](https://marstek-fw-checker.netlify.app)**
 
-1. **Create a new GitHub repository** for your firmware tool
-2. **Upload all files** to the repository root:
-   - `index.html`
-   - `script.js`
-   - `styles.css`
-   - `README.md`
-3. **Enable GitHub Pages**:
-   - Go to repository Settings
-   - Scroll down to "Pages" section
-   - Select "Deploy from a branch"
-   - Choose "main" branch and "/ (root)" folder
-   - Click Save
-4. **Access your tool**: `https://[username].github.io/[repository-name]/`
+## 📱 Supported Devices
 
-### Method 2: GitHub CLI
+| Device Type | Model | Archive Support |
+|-------------|-------|-----------------|
+| Venus E V1/V2 | HMG-50 | ✅ Full (BMS, Control, MPPT) |
+| Venus E V3 | VNSE3-0 | ✅ Full (BMS, Control, MPPT) |
+| CT Devices | CT002/CT003 | ✅ Simplified (Single firmware) |
 
-```bash
-# Create new repository
-gh repo create marstek-firmware-tool --public
+## 🗃️ Community Firmware Archive
 
-# Clone and add files
-git clone https://github.com/[username]/marstek-firmware-tool.git
-cd marstek-firmware-tool
-cp /path/to/marstek/* .
+The tool integrates with a community-driven firmware archive system:
 
-# Commit and push
-git add .
-git commit -m "Add Marstek firmware query web tool"
-git push origin main
+- **Repository**: [rweijnen/marstek-firmware-archive](https://github.com/rweijnen/marstek-firmware-archive)
+- **Structure**: Organized by device type and firmware version
+- **Automated**: GitHub Actions automatically download and archive firmware
+- **Secure**: Bot account with minimal permissions, rate limiting, and validation
 
-# Enable GitHub Pages
-gh repo edit --enable-pages --pages-branch main --pages-path /
+### Archive Structure
 ```
-
-## 🔧 Usage Instructions
-
-### Step 1: Access the Tool
-Visit your GitHub Pages URL: `https://[username].github.io/marstek-firmware-tool/`
-
-### Step 2: CORS Proxy Setup
-⚠️ **Important**: Due to browser security, you need a CORS proxy to access Marstek APIs.
-
-**Option 1: cors-anywhere.herokuapp.com** (Recommended)
-1. Visit https://cors-anywhere.herokuapp.com/corsdemo
-2. Click "Request temporary access to the demo server"
-3. Return to your firmware tool and use the default proxy setting
-
-**Option 2: allorigins.win**
-- Should work without additional setup
-- May be slower than cors-anywhere
-
-### Step 3: Login and Check Firmware
-1. **Enter your Marstek account credentials**
-2. **Select a CORS proxy** (cors-anywhere recommended)
-3. **Click "Login & Get Devices"**
-4. **View your devices** in the grid layout
-5. **Click on any device** to check firmware updates
-6. **Download firmware** if updates are available
-
-## ⚠️ Important Notes
-
-### Security Considerations
-- **Credentials are not stored** - only used for API authentication
-- **All communication** goes through HTTPS
-- **CORS proxy required** due to browser security restrictions
-- **Use only trusted proxy services**
-
-### Browser Compatibility
-- ✅ **Chrome/Chromium** - Full support
-- ✅ **Edge** - Full support  
-- ✅ **Firefox** - Full support
-- ✅ **Safari** - Full support
-- 📱 **Mobile browsers** - Responsive design
-
-### Limitations
-- **CORS dependency**: Requires external proxy service
-- **Proxy reliability**: Dependent on proxy service availability
-- **Rate limiting**: May be subject to API rate limits
-
-## 🔍 Troubleshooting
-
-### "Authentication failed"
-- Verify your Marstek account credentials
-- Try a different CORS proxy
-- Check if the proxy service is accessible
-
-### "CORS error" or "Network error"
-- Enable the CORS proxy (visit cors-anywhere demo page)
-- Try switching to the allorigins proxy
-- Check your internet connection
-
-### "No devices found"
-- Ensure devices are registered to your Marstek account
-- Check if devices are online and connected
-
-### Firmware check fails
-- Verify device ID is correct
-- Try refreshing and logging in again
-- Check browser console for detailed error messages
+firmwares/
+├── HMG-50/
+│   ├── BMS/1.2.3/
+│   ├── Control/2.1.0/
+│   └── MPPT/1.5.1/
+├── VNSE3-0/
+│   ├── BMS/2.0.1/
+│   └── Control/3.1.2/
+├── CT002/1.4.5/
+└── CT003/1.4.5/
+```
 
 ## 🛠️ Development
 
-### Local Testing
+### Local Development
 ```bash
-# Simple HTTP server for testing
+# Install dependencies
+npm install
+
+# Run local development server
+netlify dev
+# or simple HTTP server
 python -m http.server 8000
-# or
-npx serve .
-# or
-php -S localhost:8000
 ```
 
-Visit `http://localhost:8000` to test locally.
+### Environment Variables
+- `GITHUB_TOKEN`: GitHub personal access token for archive operations
 
-### Customization
-- **Styling**: Modify `styles.css` for different themes
-- **Functionality**: Update `script.js` for additional features
-- **UI**: Edit `index.html` for layout changes
+### Architecture
 
-## 📋 API Endpoints
+**Frontend (Static)**:
+- `index.html` - Main interface with modals and forms
+- `script.js` - Core functionality, archive integration, API handling
+- `styles.css` - Dark theme with device-specific styling
 
-The tool uses these Marstek API endpoints:
+**Backend (Netlify Functions)**:
+- `marstek-proxy.js` - CORS proxy for Marstek APIs and firmware downloads
+- `check-firmware-archive.js` - Archive status checking with rate limiting
+- `submit-firmware-metadata.js` - Archive submission with security validation
 
+**GitHub Integration**:
+- `.github/workflows/firmware-archiver.yml` - Automated firmware download workflow
+- Bot account: `marstek-fw-bot` with minimal permissions
+
+## 🔌 API Endpoints
+
+### Marstek APIs (via proxy)
 - **Authentication**: `https://eu.hamedata.com/app/Solar/v2_get_device.php`
-- **Firmware Check**: `https://eu.hamedata.com/ems/api/v2/checkSmallBalconyOTA`
+- **Standard Devices**: `https://eu.hamedata.com/ems/api/v2/checkSmallBalconyOTA`
+- **CT Devices**: `https://eu.hamedata.com/ems/api/v1/checkAcCoupleOta`
 
-## 🔐 Privacy & Security
+### Archive APIs
+- **Status Check**: `/.netlify/functions/check-firmware-archive`
+- **Submit Firmware**: `/.netlify/functions/submit-firmware-metadata`
 
-- Credentials are only used for authentication and not stored
-- All API calls are made client-side through CORS proxy
-- No data is collected or stored by the web tool
-- GitHub Pages serves files over HTTPS
+## 🔧 Usage
+
+1. **Visit the site** and login with your Marstek account credentials
+2. **View your devices** in the visual grid layout with product images
+3. **Click any device** to check for firmware updates
+4. **View archive status** for each firmware version in the modal
+5. **Submit missing firmware** to the community archive with one click
+6. **Download firmware** directly or from the archive
+
+## 🔒 Security & Privacy
+
+- **Credentials**: Only used for API authentication, never stored
+- **HTTPS**: All communication encrypted
+- **Rate Limiting**: 100 archive checks/hour, 20 submissions/hour per IP
+- **Bot Security**: Minimal permissions (triage only) with AWS S3 URL validation
+- **No Data Collection**: No user data stored or transmitted to third parties
+
+## 🎯 Key Improvements from Original
+
+- ✅ **No CORS Issues**: Built-in proxy eliminates need for external CORS services
+- ✅ **Archive System**: Community-driven firmware preservation
+- ✅ **Modern UI**: Dark theme with device images and responsive design
+- ✅ **Multi-Device**: Support for CT devices with dedicated API endpoints
+- ✅ **Debug Tools**: Console mode for API response inspection
+- ✅ **Translation**: Chinese to English release notes translation
+- ✅ **Mobile Support**: Responsive design works on all devices
+
+## ⚠️ Important Notes
+
+- **Unofficial Tool**: Not affiliated with, endorsed by, or supported by Marstek
+- **Use at Own Risk**: Always verify firmware compatibility before installation
+- **Community Project**: Archive maintained by community volunteers
+- **Version 100 Baseline**: Uses version "100" to detect all available updates
+
+## 🆘 Troubleshooting
+
+### Login Issues
+- Verify your Marstek account credentials
+- Check if your devices are registered and online
+- Try refreshing the page and logging in again
+
+### Archive Issues
+- **"Failed to submit"**: Check browser console for detailed error messages
+- **Rate limited**: Wait and try again (100 checks/hour limit)
+- **Invalid metadata**: Ensure firmware contains valid AWS S3 URLs
+
+### General Issues
+- **No updates found**: Normal if you have latest firmware or device not supported
+- **Debug mode**: Use console buttons (▢) to view raw API responses
+- **Network errors**: Check internet connection and try again
 
 ## 📄 License
 
-This tool is provided as-is for personal use with Marstek devices. Use at your own risk.
+MIT License - See repository for details
 
-## 🆘 Support
+## 🙏 Credits
 
-- **Issues**: Check browser console for error messages
-- **CORS problems**: Try different proxy or visit proxy demo page
-- **Device issues**: Verify device is online and registered to your account
+- **Author**: [Remko Weijnen](https://github.com/rweijnen)
+- **Original Inspiration**: PowerShell firmware checking scripts
+- **Community**: Contributors to the firmware archive project
 
 ---
 
-**⚠️ Disclaimer**: This tool is not affiliated with Marstek. Use responsibly and ensure you understand the implications of firmware updates before proceeding.
+**⚠️ Disclaimer**: This tool is provided as-is. Neither Marstek nor the tool author are responsible for any issues arising from its use. Always verify firmware compatibility before installation.
