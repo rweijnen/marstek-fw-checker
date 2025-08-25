@@ -251,11 +251,8 @@ async function getFirmwareInfo(deviceId, deviceType = 'HMG-50', currentVersion =
     }
 
     try {
-        // Check if this is a CT device by type or name
-        const deviceNameUpper = deviceName ? deviceName.toUpperCase() : '';
-        const isCTDevice = (deviceType && (deviceType.startsWith('CT') || deviceType.includes('CT('))) || 
-                           deviceNameUpper.includes('CT002') || deviceNameUpper.includes('CT003') ||
-                           deviceNameUpper.includes('CT(002)') || deviceNameUpper.includes('CT(003)');
+        // Check if this is a CT device by device type only
+        const isCTDevice = deviceType && (deviceType === 'HME-3' || deviceType === 'HME-4');
         
         let params;
         
@@ -386,12 +383,12 @@ function displayDevices(devices) {
             if ((device.type && device.type.startsWith('VNSE')) || deviceName.includes('VENUS E V3') || deviceName.includes('VNSE')) {
                 // Venus E V3
                 deviceImage = `<img src="https://eu.marstekenergy.com/cdn/shop/files/1.1_a3444687-64a0-4ed7-8ed9-9f9966428883.jpg?v=1755566381" alt="Venus E V3" class="device-image">`;
-            } else if ((device.type && (device.type === 'CT003' || device.type === 'CT(003)')) || deviceName.includes('CT003') || deviceName.includes('CT(003)')) {
-                // CT003 device
-                deviceImage = `<img src="https://eu.marstekenergy.com/cdn/shop/files/1_a21575ea-19c4-4f61-98d1-83e6112704a0.jpg?v=1739950399" alt="CT003" class="device-image">`;
-            } else if ((device.type && (device.type === 'CT002' || device.type === 'CT(002)')) || deviceName.includes('CT002') || deviceName.includes('CT(002)')) {
-                // CT002 device
-                deviceImage = `<img src="https://eu.marstekenergy.com/cdn/shop/files/3_894259a1-4bf3-4f47-b87b-72efab6ea298.jpg?v=1740573047" alt="CT002" class="device-image">`;
+            } else if (device.type === 'HME-3') {
+                // HME-3 device 
+                deviceImage = `<img src="https://eu.marstekenergy.com/cdn/shop/files/1_a21575ea-19c4-4f61-98d1-83e6112704a0.jpg?v=1739950399" alt="HME-3" class="device-image">`;
+            } else if (device.type === 'HME-4') {
+                // HME-4 device
+                deviceImage = `<img src="https://eu.marstekenergy.com/cdn/shop/files/3_894259a1-4bf3-4f47-b87b-72efab6ea298.jpg?v=1740573047" alt="HME-4" class="device-image">`;
             } else if (device.type === 'HMG-50' || deviceName.includes('VENUS E') || !device.type) {
                 // Venus E V1/V2 or default
                 deviceImage = `<img src="https://eu.marstekenergy.com/cdn/shop/files/1_2_d5e4109f-859e-46be-be9b-40e262490d4f.jpg?v=1740540638" alt="Venus E" class="device-image">`;
@@ -805,14 +802,11 @@ async function updateArchiveStatus(device, firmwareData) {
     // Determine device type for archive
     let archiveDeviceType = device.type || 'HMG-50'; // Default fallback
     
-    // Map device types using real device types instead of CT002/CT003
-    if (device.name && (device.name.includes('CT002') || device.name.includes('CT003'))) {
-        // CT devices - map to real device types (HME-4 for CT002, HME-3 for CT003)
-        archiveDeviceType = device.name.includes('CT003') ? 'HME-3' : 'HME-4';
-    } else if (device.type === 'VNSE3-0' || device.name?.includes('VNSE3')) {
+    // Use device type directly - no name checking needed
+    if (device.type === 'VNSE3-0') {
         archiveDeviceType = 'VNSE3-0';
     } else {
-        // For other devices, use the actual device type from Marstek (e.g., HME-4, HMG-50)
+        // For all devices, use the actual device type from Marstek (HME-3, HME-4, HMG-50, etc.)
         archiveDeviceType = device.type || 'HMG-50';
     }
     
@@ -1240,10 +1234,7 @@ async function showFirmwareRawData(deviceId) {
     
     try {
         // Determine which API endpoint and parameters will be used
-        const deviceNameUpper = device.name ? device.name.toUpperCase() : '';
-        const isCTDevice = (device.type && (device.type.startsWith('CT') || device.type.includes('CT('))) || 
-                           deviceNameUpper.includes('CT002') || deviceNameUpper.includes('CT003') ||
-                           deviceNameUpper.includes('CT(002)') || deviceNameUpper.includes('CT(003)');
+        const isCTDevice = device.type && (device.type === 'HME-3' || device.type === 'HME-4');
         
         let apiUrl, params;
         if (isCTDevice) {
