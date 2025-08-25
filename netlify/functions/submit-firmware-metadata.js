@@ -76,8 +76,8 @@ function validateMetadata(metadata) {
     
     // Check for S3 bucket reference (security check)
     const dataStr = JSON.stringify(metadata);
-    if (!dataStr.includes('hame-ota') && !dataStr.includes('s3.amazonaws.com')) {
-        throw new Error('Invalid firmware source - expected Marstek S3 bucket');
+    if (!dataStr.includes('amazonaws.com') && !dataStr.includes('hame-ota')) {
+        throw new Error('Invalid firmware source - expected AWS S3 bucket');
     }
     
     // Validate version format (basic check)
@@ -162,12 +162,15 @@ exports.handler = async (event, context) => {
         try {
             validateMetadata(metadata);
         } catch (error) {
+            console.error('Metadata validation failed:', error.message);
+            console.error('Received metadata:', JSON.stringify(metadata, null, 2));
             return {
                 statusCode: 400,
                 headers,
                 body: JSON.stringify({ 
                     error: 'Invalid metadata', 
-                    message: error.message 
+                    message: error.message,
+                    receivedMetadata: metadata // Debug info
                 })
             };
         }
