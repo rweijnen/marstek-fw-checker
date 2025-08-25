@@ -811,6 +811,15 @@ async function updateArchiveStatus(device, firmwareData) {
     
     // Check CT device archive status
     const isCTResponse = firmwareData.newVerion && firmwareData.data && typeof firmwareData.data === 'string';
+    console.log('CT Detection Debug:', {
+        hasNewVerion: !!firmwareData.newVerion,
+        newVerion: firmwareData.newVerion,
+        hasData: !!firmwareData.data,
+        dataType: typeof firmwareData.data,
+        data: firmwareData.data,
+        isCTResponse: isCTResponse,
+        archiveDeviceType: archiveDeviceType
+    });
     if (isCTResponse) {
         const version = String(firmwareData.newVerion);
         
