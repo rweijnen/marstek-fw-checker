@@ -811,10 +811,10 @@ async function updateArchiveStatus(device, firmwareData) {
     // Determine device type for archive
     let archiveDeviceType = device.type || 'HMG-50'; // Default fallback
     
-    // Map device types to archive format
+    // Map device types using real device types instead of CT002/CT003
     if (device.name && (device.name.includes('CT002') || device.name.includes('CT003'))) {
-        // CT devices - use the model name from device name for archive organization
-        archiveDeviceType = device.name.includes('CT002') ? 'CT002' : 'CT003';
+        // CT devices - map to real device types (HME-4 for CT002, HME-3 for CT003)
+        archiveDeviceType = device.name.includes('CT003') ? 'HME-3' : 'HME-4';
     } else if (device.type === 'VNSE3-0' || device.name?.includes('VNSE3')) {
         archiveDeviceType = 'VNSE3-0';
     } else {
@@ -832,8 +832,7 @@ async function updateArchiveStatus(device, firmwareData) {
             version: version,
             deviceType: archiveDeviceType,
             metadata: {
-                deviceType: archiveDeviceType, // Archive organization (CT002/CT003)
-                realDeviceType: device.type, // Actual Marstek device type (HME-4, etc.)
+                deviceType: archiveDeviceType, // Real device type (HME-4, HME-3, etc.)
                 deviceName: device.name, // Full device name
                 // No firmwareType for CT devices - flatter structure
                 version: version,
@@ -905,8 +904,8 @@ async function updateArchiveStatus(device, firmwareData) {
         
         // Check each firmware type
         for (const check of archiveChecks) {
-            // For CT devices, don't pass firmware type (flatter structure)
-            const isCTDevice = check.deviceType.startsWith('CT');
+            // For CT devices (HME-4, HME-3), don't pass firmware type (flatter structure)
+            const isCTDevice = check.deviceType === 'HME-4' || check.deviceType === 'HME-3';
             const archiveResult = isCTDevice 
                 ? await checkFirmwareArchive(check.deviceType, '', check.version)
                 : await checkFirmwareArchive(check.deviceType, check.type, check.version);

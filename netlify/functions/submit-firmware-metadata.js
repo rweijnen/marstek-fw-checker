@@ -49,7 +49,7 @@ function validateMetadata(metadata) {
     // Check required fields
     const required = ['deviceType', 'version'];
     // For non-CT devices, firmwareType is also required
-    const isCTDevice = metadata.deviceType && metadata.deviceType.startsWith('CT');
+    const isCTDevice = metadata.deviceType && (metadata.deviceType === 'HME-4' || metadata.deviceType === 'HME-3');
     if (!isCTDevice) {
         required.push('firmwareType');
     }
@@ -61,7 +61,7 @@ function validateMetadata(metadata) {
     }
     
     // Validate device types (allow both archive types and real device types)
-    const validDeviceTypes = ['HMG-50', 'VNSE3-0', 'CT002', 'CT003', 'HME-4', '1'];
+    const validDeviceTypes = ['HMG-50', 'VNSE3-0', 'HME-4', 'HME-3', '1'];
     if (!validDeviceTypes.includes(metadata.deviceType) && !validDeviceTypes.includes(metadata.realDeviceType)) {
         throw new Error(`Invalid device type: ${metadata.deviceType} (real: ${metadata.realDeviceType})`);
     }
@@ -197,7 +197,7 @@ exports.handler = async (event, context) => {
         const repo = 'marstek-firmware-archive';
 
         // Determine if this is a CT device for URL generation
-        const isCTDevice = metadata.deviceType.startsWith('CT');
+        const isCTDevice = metadata.deviceType === 'HME-4' || metadata.deviceType === 'HME-3';
 
         // Check for existing open issues for the same firmware version
         const searchQuery = isCTDevice 
@@ -242,7 +242,7 @@ exports.handler = async (event, context) => {
         
         const issueBody = `## Firmware Submission Request
 
-**Device Type:** ${metadata.realDeviceType || metadata.deviceType}${metadata.realDeviceType ? ` (Archive: ${metadata.deviceType})` : ''}
+**Device Type:** ${metadata.deviceType}
 ${metadata.deviceName ? `**Device Name:** ${metadata.deviceName}` : ''}
 ${isCTDevice ? '' : `**Firmware Type:** ${metadata.firmwareType}`}
 **Version:** ${metadata.version}
