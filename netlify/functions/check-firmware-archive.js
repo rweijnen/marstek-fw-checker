@@ -72,8 +72,7 @@ exports.handler = async (event, context) => {
         const { deviceType, firmwareType, version } = params;
 
         // Validate required parameters
-        const isCTDevice = deviceType && deviceType.startsWith('CT');
-        const requiredParams = isCTDevice ? ['deviceType', 'version'] : ['deviceType', 'firmwareType', 'version'];
+        const requiredParams = (deviceType && deviceType.startsWith('CT')) ? ['deviceType', 'version'] : ['deviceType', 'firmwareType', 'version'];
         
         for (const param of requiredParams) {
             if (!params[param]) {

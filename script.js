@@ -492,7 +492,9 @@ async function checkFirmwareArchive(deviceType, firmwareType, version) {
         return data;
     } catch (error) {
         console.error('Error checking firmware archive:', error);
-        console.error('Failed URL:', url);
+        if (typeof url !== 'undefined') {
+            console.error('Failed URL:', url);
+        }
         console.error('Full error details:', {
             message: error.message,
             name: error.name,
