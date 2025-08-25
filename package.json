@@ -1,0 +1,38 @@
+{
+  "name": "marstek-fw-checker",
+  "version": "1.0.0",
+  "description": "Web-based firmware update checker for Marstek devices with GitHub archive integration",
+  "main": "index.html",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'Static site - no build step required'",
+    "test": "echo 'No tests configured'"
+  },
+  "keywords": [
+    "marstek",
+    "firmware",
+    "solar",
+    "battery",
+    "archive"
+  ],
+  "author": "Remko Weijnen",
+  "license": "MIT",
+  "dependencies": {
+    "@octokit/rest": "^20.0.2"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rweijnen/marstek-fw-checker.git"
+  },
+  "netlify": {
+    "functions": {
+      "directory": "netlify/functions"
+    }
+  }
+}

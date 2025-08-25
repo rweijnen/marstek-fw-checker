@@ -260,7 +260,7 @@ small {
 }
 
 .device-content {
-    padding-right: 130px; /* Make room for the larger image */
+    padding-right: 150px; /* Make room for the larger image */
 }
 
 /* Console Button */
@@ -311,8 +311,8 @@ small {
     position: absolute;
     top: 15px;
     right: 15px;
-    width: 110px;
-    height: 110px;
+    width: 130px;
+    height: 130px;
     object-fit: cover;
     border-radius: 8px;
     /* Remove padding and use cover to fill the space */

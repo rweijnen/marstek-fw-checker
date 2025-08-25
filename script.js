@@ -458,6 +458,50 @@ async function showFirmwareDetails(device) {
     }
 }
 
+// Archive functionality
+async function checkFirmwareArchive(deviceType, firmwareType, version) {
+    try {
+        const response = await fetch(`/.netlify/functions/check-firmware-archive?deviceType=${encodeURIComponent(deviceType)}&firmwareType=${encodeURIComponent(firmwareType)}&version=${encodeURIComponent(version)}`);
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to check archive');
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('Error checking firmware archive:', error);
+        return { exists: false, error: error.message };
+    }
+}
+
+async function submitFirmwareToArchive(metadata, deviceInfo, notes = '') {
+    try {
+        const response = await fetch('/.netlify/functions/submit-firmware-metadata', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                metadata,
+                deviceInfo,
+                submissionNotes: notes
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to submit firmware');
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('Error submitting firmware:', error);
+        throw error;
+    }
+}
+
 // Display firmware details in modal
 function displayFirmwareDetails(device, firmwareData) {
     const modalBody = document.getElementById('modalBody');
@@ -485,6 +529,16 @@ function displayFirmwareDetails(device, firmwareData) {
                     <label>Status</label>
                     <value>Online</value>
                 </div>
+            </div>
+        </div>
+    `;
+
+    // Archive Status Section
+    html += `
+        <div class="firmware-section" id="archiveSection">
+            <h3>📚 Archive Status</h3>
+            <div id="archiveStatus">
+                <p style="color: #b0b0b0;">Checking archive status...</p>
             </div>
         </div>
     `;
@@ -697,6 +751,209 @@ function displayFirmwareDetails(device, firmwareData) {
     `;
     
     modalBody.innerHTML = html;
+    
+    // Check archive status for available firmware versions
+    updateArchiveStatus(device, firmwareData);
+}
+
+async function updateArchiveStatus(device, firmwareData) {
+    const archiveStatusDiv = document.getElementById('archiveStatus');
+    if (!archiveStatusDiv) return;
+    
+    let archiveHtml = '';
+    const archiveChecks = [];
+    
+    // Determine device type for archive
+    let archiveDeviceType = device.type || 'HMG-50'; // Default fallback
+    
+    // Map device types to archive format
+    if (device.type === '1' || (device.name && (device.name.includes('CT002') || device.name.includes('CT003')))) {
+        archiveDeviceType = device.name?.includes('CT002') ? 'CT002' : 'CT003';
+    } else if (device.type === 'VNSE3-0' || device.name?.includes('VNSE3')) {
+        archiveDeviceType = 'VNSE3-0';
+    }
+    
+    // Check CT device archive status
+    const isCTResponse = firmwareData.newVerion && firmwareData.data && typeof firmwareData.data === 'string';
+    if (isCTResponse) {
+        const version = firmwareData.newVerion;
+        
+        archiveChecks.push({
+            type: 'Firmware', // CT devices have single firmware type
+            version: version,
+            deviceType: archiveDeviceType,
+            metadata: {
+                deviceType: archiveDeviceType,
+                // No firmwareType for CT devices - flatter structure
+                version: version,
+                url: firmwareData.data,
+                otaWay: firmwareData.otaWay,
+                chinese: firmwareData.chinese,
+                english: firmwareData.english,
+                apiResponse: firmwareData
+            }
+        });
+    } else {
+        // Check standard device firmware types
+        if (firmwareData.data?.bms && firmwareData.data.bms.version) {
+            archiveChecks.push({
+                type: 'BMS',
+                version: firmwareData.data.bms.version,
+                deviceType: archiveDeviceType,
+                metadata: {
+                    deviceType: archiveDeviceType,
+                    firmwareType: 'BMS',
+                    version: firmwareData.data.bms.version,
+                    url: firmwareData.data.bms.url,
+                    remark: firmwareData.data.bms.remark,
+                    chinese: firmwareData.data.bms.chinese,
+                    apiResponse: firmwareData
+                }
+            });
+        }
+        
+        if (firmwareData.data?.control && firmwareData.data.control.version) {
+            archiveChecks.push({
+                type: 'Control',
+                version: firmwareData.data.control.version,
+                deviceType: archiveDeviceType,
+                metadata: {
+                    deviceType: archiveDeviceType,
+                    firmwareType: 'Control',
+                    version: firmwareData.data.control.version,
+                    url: firmwareData.data.control.url,
+                    remark: firmwareData.data.control.remark,
+                    chinese: firmwareData.data.control.chinese,
+                    apiResponse: firmwareData
+                }
+            });
+        }
+        
+        if (firmwareData.data?.mppt && firmwareData.data.mppt.version) {
+            archiveChecks.push({
+                type: 'MPPT',
+                version: firmwareData.data.mppt.version,
+                deviceType: archiveDeviceType,
+                metadata: {
+                    deviceType: archiveDeviceType,
+                    firmwareType: 'MPPT',
+                    version: firmwareData.data.mppt.version,
+                    url: firmwareData.data.mppt.url,
+                    remark: firmwareData.data.mppt.remark,
+                    chinese: firmwareData.data.mppt.chinese,
+                    apiResponse: firmwareData
+                }
+            });
+        }
+    }
+    
+    if (archiveChecks.length === 0) {
+        archiveHtml = '<p style="color: #b0b0b0;">No firmware versions available to archive.</p>';
+    } else {
+        archiveHtml = '<div class="firmware-details">';
+        
+        // Check each firmware type
+        for (const check of archiveChecks) {
+            // For CT devices, don't pass firmware type (flatter structure)
+            const isCTDevice = check.deviceType.startsWith('CT');
+            const archiveResult = isCTDevice 
+                ? await checkFirmwareArchive(check.deviceType, '', check.version)
+                : await checkFirmwareArchive(check.deviceType, check.type, check.version);
+            
+            archiveHtml += `
+                <div class="firmware-detail">
+                    <label>${check.type} v${check.version}</label>
+                    <value style="display: flex; align-items: center; gap: 10px;">
+            `;
+            
+            if (archiveResult.exists) {
+                archiveHtml += `
+                    <span style="color: #4CAF50;">✅ Archived</span>
+                    <a href="${archiveResult.githubUrl}" target="_blank" class="btn" style="font-size: 11px; padding: 4px 8px; margin: 0;">
+                        📁 View Archive
+                    </a>
+                `;
+            } else {
+                const submitId = `submit_${check.type}_${check.version}`.replace(/\./g, '_');
+                archiveHtml += `
+                    <span style="color: #FF9800;">📥 Not Archived</span>
+                    <button id="${submitId}" class="btn btn-secondary" style="font-size: 11px; padding: 4px 8px; margin: 0;" 
+                            onclick="submitToArchive('${submitId}', ${JSON.stringify(check.metadata).replace(/"/g, '&quot;')}, ${JSON.stringify(device).replace(/"/g, '&quot;')})">
+                        🚀 Submit for Archive
+                    </button>
+                `;
+            }
+            
+            archiveHtml += `
+                    </value>
+                </div>
+            `;
+        }
+        
+        archiveHtml += '</div>';
+        
+        // Add archive info
+        archiveHtml += `
+            <div style="margin-top: 15px; padding: 12px; background: rgba(76, 175, 80, 0.1); border-left: 3px solid #4CAF50; border-radius: 4px;">
+                <h4 style="color: #4CAF50; margin: 0 0 8px 0; font-size: 14px;">🗃️ About the Archive</h4>
+                <p style="color: #b0b0b0; font-size: 12px; margin: 0;">
+                    The firmware archive preserves firmware files and metadata for the community. 
+                    Submitting firmware helps ensure versions remain available even if removed from official servers.
+                </p>
+            </div>
+        `;
+    }
+    
+    archiveStatusDiv.innerHTML = archiveHtml;
+}
+
+async function submitToArchive(buttonId, metadata, deviceInfo) {
+    const button = document.getElementById(buttonId);
+    if (!button) return;
+    
+    const originalText = button.innerHTML;
+    button.innerHTML = '⏳ Submitting...';
+    button.disabled = true;
+    
+    try {
+        const result = await submitFirmwareToArchive(metadata, deviceInfo, 'Submitted via web interface');
+        
+        if (result.success) {
+            button.innerHTML = '✅ Submitted!';
+            button.classList.remove('btn-secondary');
+            button.classList.add('btn-warning');
+            
+            // Update button to show tracking info
+            setTimeout(() => {
+                button.innerHTML = `📋 Issue #${result.issueNumber}`;
+                button.onclick = () => window.open(result.issueUrl, '_blank');
+            }, 2000);
+        } else if (result.existingIssue) {
+            // Duplicate submission - show existing issue
+            button.innerHTML = '⚠️ Already Queued';
+            button.classList.remove('btn-secondary');
+            button.classList.add('btn-warning');
+            button.disabled = true;
+            
+            setTimeout(() => {
+                button.innerHTML = `📋 Issue #${result.existingIssue.number}`;
+                button.onclick = () => window.open(result.existingIssue.url, '_blank');
+            }, 2000);
+        } else {
+            throw new Error(result.message || 'Submission failed');
+        }
+    } catch (error) {
+        console.error('Submission error:', error);
+        button.innerHTML = '❌ Failed';
+        button.disabled = false;
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }, 3000);
+        
+        alert(`Failed to submit firmware: ${error.message}`);
+    }
 }
 
 // Display error
