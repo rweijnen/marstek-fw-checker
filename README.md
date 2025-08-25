@@ -12,9 +12,11 @@ A comprehensive tool that checks firmware updates for Marstek equipment and main
 - **Device Authentication**: Login with your Marstek account credentials
 - **Device Discovery**: Visual grid display of all registered devices with product images
 - **Multi-Device Support**: Venus E V1/V2 (HMG-50), Venus E V3 (VNSE3-0), CT002/CT003 devices
-- **Firmware Checking**: One-click firmware update checking for all device types
+- **Firmware Availability**: Check what firmware versions Marstek servers are offering
 - **Direct Downloads**: Download firmware files directly from the interface
 - **Release Notes**: View and translate firmware release notes from Chinese to English
+
+> **Note**: This tool shows firmware available from Marstek servers, not whether your device specifically needs an update. It uses baseline version "100" to retrieve all available firmware versions.
 
 ### Archive System 🗃️
 - **Community Archive**: Automated firmware preservation in GitHub repository
@@ -112,10 +114,13 @@ python -m http.server 8000
 
 1. **Visit the site** and login with your Marstek account credentials
 2. **View your devices** in the visual grid layout with product images
-3. **Click any device** to check for firmware updates
-4. **View archive status** for each firmware version in the modal
-5. **Submit missing firmware** to the community archive with one click
-6. **Download firmware** directly or from the archive
+3. **Click any device** to see what firmware versions are available from Marstek
+4. **Compare with your device** to determine if you want to update (manual comparison required)
+5. **View archive status** for each firmware version in the modal
+6. **Submit missing firmware** to the community archive with one click
+7. **Download firmware** directly or from the archive
+
+> **Important**: This tool doesn't compare your current firmware version with available versions. You need to manually check if the available firmware is newer than what you currently have installed.
 
 ## 🔒 Security & Privacy
 
@@ -140,7 +145,8 @@ python -m http.server 8000
 - **Unofficial Tool**: Not affiliated with, endorsed by, or supported by Marstek
 - **Use at Own Risk**: Always verify firmware compatibility before installation
 - **Community Project**: Archive maintained by community volunteers
-- **Version 100 Baseline**: Uses version "100" to detect all available updates
+- **Version 100 Baseline**: Uses version "100" to query all available firmware from Marstek servers
+- **No Version Comparison**: Tool shows available firmware but doesn't compare with your current version
 
 ## 🆘 Troubleshooting
 
@@ -155,7 +161,8 @@ python -m http.server 8000
 - **Invalid metadata**: Ensure firmware contains valid AWS S3 URLs
 
 ### General Issues
-- **No updates found**: Normal if you have latest firmware or device not supported
+- **No firmware found**: Normal if Marstek has no firmware available for your device type
+- **"Up to Date" message**: Means no firmware data returned from Marstek servers (not that your device is current)
 - **Debug mode**: Use console buttons (▢) to view raw API responses
 - **Network errors**: Check internet connection and try again
 
