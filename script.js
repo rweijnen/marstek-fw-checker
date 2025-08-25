@@ -957,30 +957,42 @@ function obfuscateDeviceInfo(deviceInfo) {
     
     const obfuscated = { ...deviceInfo };
     
+    console.log('Original device info:', deviceInfo); // Debug log
+    
     // Obfuscate device ID (keep first 2 and last 2 characters)
     if (obfuscated.devid) {
         const devid = obfuscated.devid.toString();
+        console.log('Original devid:', devid, 'length:', devid.length); // Debug log
         if (devid.length > 4) {
-            obfuscated.devid = devid.substring(0, 2) + '*'.repeat(devid.length - 4) + devid.substring(devid.length - 2);
+            const obfuscatedDevid = devid.substring(0, 2) + '*'.repeat(devid.length - 4) + devid.substring(devid.length - 2);
+            console.log('Obfuscated devid:', obfuscatedDevid); // Debug log
+            obfuscated.devid = obfuscatedDevid;
         }
     }
     
     // Obfuscate serial number
     if (obfuscated.sn) {
         const sn = obfuscated.sn.toString();
+        console.log('Original sn:', sn, 'length:', sn.length); // Debug log
         if (sn.length > 4) {
-            obfuscated.sn = sn.substring(0, 2) + '*'.repeat(sn.length - 4) + sn.substring(sn.length - 2);
+            const obfuscatedSn = sn.substring(0, 2) + '*'.repeat(sn.length - 4) + sn.substring(sn.length - 2);
+            console.log('Obfuscated sn:', obfuscatedSn); // Debug log
+            obfuscated.sn = obfuscatedSn;
         }
     }
     
     // Obfuscate MAC address
     if (obfuscated.mac) {
         const mac = obfuscated.mac.toString();
+        console.log('Original mac:', mac, 'length:', mac.length); // Debug log
         if (mac.length > 4) {
-            obfuscated.mac = mac.substring(0, 2) + '*'.repeat(mac.length - 4) + mac.substring(mac.length - 2);
+            const obfuscatedMac = mac.substring(0, 2) + '*'.repeat(mac.length - 4) + mac.substring(mac.length - 2);
+            console.log('Obfuscated mac:', obfuscatedMac); // Debug log
+            obfuscated.mac = obfuscatedMac;
         }
     }
     
+    console.log('Final obfuscated device info:', obfuscated); // Debug log
     return obfuscated;
 }
 
