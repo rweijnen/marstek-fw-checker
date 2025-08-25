@@ -812,10 +812,14 @@ async function updateArchiveStatus(device, firmwareData) {
     let archiveDeviceType = device.type || 'HMG-50'; // Default fallback
     
     // Map device types to archive format
-    if (device.type === '1' || (device.name && (device.name.includes('CT002') || device.name.includes('CT003')))) {
-        archiveDeviceType = device.name?.includes('CT002') ? 'CT002' : 'CT003';
+    if (device.name && (device.name.includes('CT002') || device.name.includes('CT003'))) {
+        // CT devices - use the model name from device name for archive organization
+        archiveDeviceType = device.name.includes('CT002') ? 'CT002' : 'CT003';
     } else if (device.type === 'VNSE3-0' || device.name?.includes('VNSE3')) {
         archiveDeviceType = 'VNSE3-0';
+    } else {
+        // For other devices, use the actual device type from Marstek (e.g., HME-4, HMG-50)
+        archiveDeviceType = device.type || 'HMG-50';
     }
     
     // Check CT device archive status
@@ -828,7 +832,9 @@ async function updateArchiveStatus(device, firmwareData) {
             version: version,
             deviceType: archiveDeviceType,
             metadata: {
-                deviceType: archiveDeviceType,
+                deviceType: archiveDeviceType, // Archive organization (CT002/CT003)
+                realDeviceType: device.type, // Actual Marstek device type (HME-4, etc.)
+                deviceName: device.name, // Full device name
                 // No firmwareType for CT devices - flatter structure
                 version: version,
                 url: firmwareData.data,

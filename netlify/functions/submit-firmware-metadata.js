@@ -60,10 +60,10 @@ function validateMetadata(metadata) {
         }
     }
     
-    // Validate device types
-    const validDeviceTypes = ['HMG-50', 'VNSE3-0', 'CT002', 'CT003'];
-    if (!validDeviceTypes.includes(metadata.deviceType)) {
-        throw new Error(`Invalid device type: ${metadata.deviceType}`);
+    // Validate device types (allow both archive types and real device types)
+    const validDeviceTypes = ['HMG-50', 'VNSE3-0', 'CT002', 'CT003', 'HME-4', '1'];
+    if (!validDeviceTypes.includes(metadata.deviceType) && !validDeviceTypes.includes(metadata.realDeviceType)) {
+        throw new Error(`Invalid device type: ${metadata.deviceType} (real: ${metadata.realDeviceType})`);
     }
     
     // Validate firmware types (only for non-CT devices)
@@ -242,7 +242,8 @@ exports.handler = async (event, context) => {
         
         const issueBody = `## Firmware Submission Request
 
-**Device Type:** ${metadata.deviceType}
+**Device Type:** ${metadata.realDeviceType || metadata.deviceType}${metadata.realDeviceType ? ` (Archive: ${metadata.deviceType})` : ''}
+${metadata.deviceName ? `**Device Name:** ${metadata.deviceName}` : ''}
 ${isCTDevice ? '' : `**Firmware Type:** ${metadata.firmwareType}`}
 **Version:** ${metadata.version}
 **Submitted:** ${new Date().toISOString()}
