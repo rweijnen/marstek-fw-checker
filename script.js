@@ -406,6 +406,7 @@ function displayDevices(devices) {
                 <div class="device-content">
                     <div class="device-name">${device.name || `Device ${device.devid}`}</div>
                     <div class="device-info">Type: ${device.type || 'Unknown'}</div>
+                    <div class="device-info">Current Version: ${device.version || 'Unknown'}</div>
                     <div class="device-info">Serial: ${device.sn || 'Not available'}</div>
                     <div class="device-info">MAC: ${device.mac || 'Unknown'}</div>
                     <div class="device-info">Bluetooth: ${device.bluetooth_name || 'Unknown'}</div>
