@@ -103,6 +103,18 @@ exports.handler = async (event, context) => {
             };
         }
 
+        // Check if GitHub token is available
+        if (!process.env.GITHUB_TOKEN) {
+            return {
+                statusCode: 500,
+                headers,
+                body: JSON.stringify({
+                    error: 'GitHub token not configured',
+                    message: 'Server configuration error'
+                })
+            };
+        }
+
         // Initialize GitHub client
         const octokit = new Octokit({
             auth: process.env.GITHUB_TOKEN

@@ -461,7 +461,13 @@ async function showFirmwareDetails(device) {
 // Archive functionality
 async function checkFirmwareArchive(deviceType, firmwareType, version) {
     try {
-        const response = await fetch(`/.netlify/functions/check-firmware-archive?deviceType=${encodeURIComponent(deviceType)}&firmwareType=${encodeURIComponent(firmwareType)}&version=${encodeURIComponent(version)}`);
+        // Build URL parameters - skip firmwareType for CT devices (empty string)
+        let url = `/.netlify/functions/check-firmware-archive?deviceType=${encodeURIComponent(deviceType)}&version=${encodeURIComponent(version)}`;
+        if (firmwareType && firmwareType.trim()) {
+            url += `&firmwareType=${encodeURIComponent(firmwareType)}`;
+        }
+        
+        const response = await fetch(url);
         const data = await response.json();
         
         if (!response.ok) {
