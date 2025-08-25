@@ -506,6 +506,8 @@ async function checkFirmwareArchive(deviceType, firmwareType, version) {
 
 async function submitFirmwareToArchive(metadata, deviceInfo, notes = '') {
     try {
+        console.log('Submitting firmware metadata:', { metadata, deviceInfo, notes }); // Debug log
+        
         const response = await fetch('/.netlify/functions/submit-firmware-metadata', {
             method: 'POST',
             headers: {
@@ -518,10 +520,24 @@ async function submitFirmwareToArchive(metadata, deviceInfo, notes = '') {
             })
         });
         
-        const data = await response.json();
+        console.log('Submission response status:', response.status, response.statusText); // Debug log
+        
+        // Get response text first, then try to parse as JSON
+        const responseText = await response.text();
+        console.log('Submission raw response:', responseText); // Debug log
+        
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (jsonError) {
+            console.error('Failed to parse submission response JSON:', jsonError);
+            console.error('Response text was:', responseText);
+            throw new Error(`Server returned invalid JSON (status: ${response.status}): ${responseText}`);
+        }
         
         if (!response.ok) {
-            throw new Error(data.error || 'Failed to submit firmware');
+            console.error('Submission failed:', data);
+            throw new Error(data.error || data.message || 'Failed to submit firmware');
         }
         
         return data;
