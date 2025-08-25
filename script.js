@@ -456,18 +456,17 @@ async function showFirmwareDetails(device) {
 async function checkFirmwareArchive(deviceType, firmwareType, version) {
     try {
         // Build URL parameters - skip firmwareType for CT devices (empty string)
-        let url = `/.netlify/functions/check-firmware-archive?deviceType=${encodeURIComponent(deviceType)}&version=${encodeURIComponent(version)}`;
+        let url = `/.netlify/functions/check-firmware-archive?deviceType=${encodeURIComponent(deviceType)}&version=${encodeURIComponent(String(version))}`;
         if (firmwareType && firmwareType.trim()) {
             url += `&firmwareType=${encodeURIComponent(firmwareType)}`;
         }
         
-        console.log('Archive check URL:', url); // Debug log
+        // Check archive status
         const response = await fetch(url);
-        console.log('Archive response status:', response.status, response.statusText); // Debug log
+        // Parse archive response
         
         // Get response text first, then try to parse as JSON
         const responseText = await response.text();
-        console.log('Raw response:', responseText); // Debug log
         
         let data;
         try {
@@ -813,7 +812,7 @@ async function updateArchiveStatus(device, firmwareData) {
     // Check CT device archive status
     const isCTResponse = firmwareData.newVerion && firmwareData.data && typeof firmwareData.data === 'string';
     if (isCTResponse) {
-        const version = firmwareData.newVerion;
+        const version = String(firmwareData.newVerion);
         
         archiveChecks.push({
             type: 'Firmware', // CT devices have single firmware type
