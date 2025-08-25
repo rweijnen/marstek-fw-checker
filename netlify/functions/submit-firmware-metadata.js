@@ -246,7 +246,6 @@ exports.handler = async (event, context) => {
 ${isCTDevice ? '' : `**Firmware Type:** ${metadata.firmwareType}`}
 **Version:** ${metadata.version}
 **Submitted:** ${new Date().toISOString()}
-**Source IP:** ${clientIP}
 
 ### Device Information
 ${deviceInfo ? JSON.stringify(deviceInfo, null, 2) : 'Not provided'}
