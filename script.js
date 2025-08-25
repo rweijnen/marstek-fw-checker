@@ -232,15 +232,60 @@ async function authenticateUser(email, password) {
         currentToken = token;
         currentEmail = email;
 
+        // Now get detailed device list with version info
+        const detailedDevices = await getDetailedDeviceList(token, email);
+        
+        // Merge basic device data with detailed device data
+        const devices = authData.data || [];
+        const mergedDevices = devices.map(device => {
+            const detailed = detailedDevices.find(d => d.devid === device.devid);
+            return detailed ? { ...device, ...detailed } : device;
+        });
+        
         return {
             success: true,
             token: token,
-            devices: authData.data || []  // Changed from authData.devices to authData.data
+            devices: mergedDevices
         };
 
     } catch (error) {
         console.error('Authentication failed:', error);
         throw error;
+    }
+}
+
+// Get detailed device list with version information
+async function getDetailedDeviceList(token, email) {
+    try {
+        const params = new URLSearchParams({
+            endpoint: '/ems/api/v1/getDeviceList',
+            token: token,
+            mailbox: email
+        });
+        
+        const response = await fetch(`/.netlify/functions/marstek-proxy?${params.toString()}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            }
+        });
+        
+        if (!response.ok) {
+            console.warn('Failed to get detailed device list:', response.status);
+            return [];
+        }
+        
+        const responseText = await response.text();
+        const data = JSON.parse(responseText);
+        
+        if (data.code === 1 && data.data) {
+            return data.data;
+        }
+        
+        return [];
+    } catch (error) {
+        console.warn('Error getting detailed device list:', error);
+        return [];
     }
 }
 
