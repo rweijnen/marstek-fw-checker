@@ -952,6 +952,38 @@ async function updateArchiveStatus(device, firmwareData) {
     archiveStatusDiv.innerHTML = archiveHtml;
 }
 
+function obfuscateDeviceInfo(deviceInfo) {
+    if (!deviceInfo) return deviceInfo;
+    
+    const obfuscated = { ...deviceInfo };
+    
+    // Obfuscate device ID (keep first 2 and last 2 characters)
+    if (obfuscated.devid) {
+        const devid = obfuscated.devid.toString();
+        if (devid.length > 4) {
+            obfuscated.devid = devid.substring(0, 2) + '*'.repeat(devid.length - 4) + devid.substring(devid.length - 2);
+        }
+    }
+    
+    // Obfuscate serial number
+    if (obfuscated.sn) {
+        const sn = obfuscated.sn.toString();
+        if (sn.length > 4) {
+            obfuscated.sn = sn.substring(0, 2) + '*'.repeat(sn.length - 4) + sn.substring(sn.length - 2);
+        }
+    }
+    
+    // Obfuscate MAC address
+    if (obfuscated.mac) {
+        const mac = obfuscated.mac.toString();
+        if (mac.length > 4) {
+            obfuscated.mac = mac.substring(0, 2) + '*'.repeat(mac.length - 4) + mac.substring(mac.length - 2);
+        }
+    }
+    
+    return obfuscated;
+}
+
 async function submitToArchive(buttonId, metadata, deviceInfo) {
     const button = document.getElementById(buttonId);
     if (!button) return;
@@ -961,7 +993,9 @@ async function submitToArchive(buttonId, metadata, deviceInfo) {
     button.disabled = true;
     
     try {
-        const result = await submitFirmwareToArchive(metadata, deviceInfo, 'Submitted via web interface');
+        // Obfuscate sensitive device information
+        const obfuscatedDeviceInfo = obfuscateDeviceInfo(deviceInfo);
+        const result = await submitFirmwareToArchive(metadata, obfuscatedDeviceInfo, 'Submitted via web interface');
         
         if (result.success) {
             button.innerHTML = '✅ Submitted!';
