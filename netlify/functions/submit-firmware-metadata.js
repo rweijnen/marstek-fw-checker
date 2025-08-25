@@ -175,6 +175,19 @@ exports.handler = async (event, context) => {
             };
         }
 
+        // Check if GitHub token is available
+        if (!process.env.GITHUB_TOKEN) {
+            console.error('GITHUB_TOKEN environment variable is not set');
+            return {
+                statusCode: 500,
+                headers,
+                body: JSON.stringify({
+                    error: 'GitHub token not configured',
+                    message: 'Server configuration error - missing GITHUB_TOKEN'
+                })
+            };
+        }
+
         // Initialize GitHub client
         const octokit = new Octokit({
             auth: process.env.GITHUB_TOKEN
@@ -219,8 +232,7 @@ exports.handler = async (event, context) => {
             // Continue with submission if search fails
         }
 
-        // Create issue with firmware metadata
-        const isCTDevice = metadata.deviceType.startsWith('CT');
+        // Create issue with firmware metadata  
         const issueTitle = isCTDevice 
             ? `[Firmware Submission] ${metadata.deviceType} v${metadata.version}`
             : `[Firmware Submission] ${metadata.deviceType} ${metadata.firmwareType} v${metadata.version}`;
@@ -302,13 +314,15 @@ ${submissionNotes || 'None provided'}
 
     } catch (error) {
         console.error('Error in firmware submission:', error);
+        console.error('Error stack:', error.stack);
         
         return {
             statusCode: 500,
             headers,
             body: JSON.stringify({
                 error: 'Internal server error',
-                message: error.message
+                message: error.message,
+                details: `${error.name}: ${error.message}`
             })
         };
     }
