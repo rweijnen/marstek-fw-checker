@@ -602,11 +602,11 @@ function displayFirmwareDetails(device, firmwareData) {
     
     html += `
         <div class="firmware-section">
-            <h3>${hasActualUpdates ? '🔄 Updates Available' : '✅ Up to Date'}</h3>
+            <h3>${hasActualUpdates ? '📦 Firmware Available' : '✅ No Firmware Data'}</h3>
     `;
     
     if (hasActualUpdates) {
-        html += '<p style="color: #FF9800; font-weight: 600;">New firmware versions are available for download!</p>';
+        html += '<p style="color: #FF9800; font-weight: 600;">Marstek servers have firmware versions available for this device!</p>';
         
         // Handle CT device firmware (different response format)
         if (isCTResponse) {
@@ -775,7 +775,7 @@ function displayFirmwareDetails(device, firmwareData) {
             }
         }
     } else {
-        html += '<p style="color: #4CAF50; font-weight: 600;">No firmware updates found. This could mean:<br>• You already have the latest firmware<br>• No updates are available for your device model<br>• Current firmware versions were not provided</p>';
+        html += '<p style="color: #4CAF50; font-weight: 600;">No firmware data from Marstek servers. This could mean:<br>• No firmware versions are available for your device model<br>• Servers have no firmware data for this device type<br>• Device type not supported by the API</p>';
     }
     
     html += '</div>';
