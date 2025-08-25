@@ -467,16 +467,37 @@ async function checkFirmwareArchive(deviceType, firmwareType, version) {
             url += `&firmwareType=${encodeURIComponent(firmwareType)}`;
         }
         
+        console.log('Archive check URL:', url); // Debug log
         const response = await fetch(url);
-        const data = await response.json();
+        console.log('Archive response status:', response.status, response.statusText); // Debug log
+        
+        // Get response text first, then try to parse as JSON
+        const responseText = await response.text();
+        console.log('Raw response:', responseText); // Debug log
+        
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (jsonError) {
+            console.error('Failed to parse response JSON:', jsonError);
+            console.error('Response text was:', responseText);
+            throw new Error(`Server returned invalid JSON (status: ${response.status}): ${responseText}`);
+        }
         
         if (!response.ok) {
-            throw new Error(data.error || 'Failed to check archive');
+            console.error('Archive check failed:', data);
+            throw new Error(data.error || `Server error (${response.status}): ${data.message || 'Failed to check archive'}`);
         }
         
         return data;
     } catch (error) {
         console.error('Error checking firmware archive:', error);
+        console.error('Failed URL:', url);
+        console.error('Full error details:', {
+            message: error.message,
+            name: error.name,
+            stack: error.stack
+        });
         return { exists: false, error: error.message };
     }
 }
