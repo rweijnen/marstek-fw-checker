@@ -89,7 +89,7 @@ exports.handler = async (event, context) => {
         }
 
         // Validate device types
-        const validDeviceTypes = ['HMG-50', 'VNSE3-0', 'HME-4', 'HME-3'];
+        const validDeviceTypes = ['HMG-50', 'HMG-25', 'VNSE3-0', 'HME-4', 'HME-3'];
         if (!validDeviceTypes.includes(deviceType)) {
             return {
                 statusCode: 400,

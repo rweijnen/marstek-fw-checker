@@ -389,6 +389,9 @@ function displayDevices(devices) {
             } else if (device.type === 'HME-4') {
                 // HME-4 device
                 deviceImage = `<img src="https://eu.marstekenergy.com/cdn/shop/files/3_894259a1-4bf3-4f47-b87b-72efab6ea298.jpg?v=1740573047" alt="HME-4" class="device-image">`;
+            } else if (device.type === 'HMG-25') {
+                // Venus C device
+                deviceImage = `<img src="https://eu.marstekenergy.com/cdn/shop/files/1_2_d5e4109f-859e-46be-be9b-40e262490d4f.jpg?v=1740540638" alt="Venus C" class="device-image">`;
             } else if (device.type === 'HMG-50' || deviceName.includes('VENUS E') || !device.type) {
                 // Venus E V1/V2 or default
                 deviceImage = `<img src="https://eu.marstekenergy.com/cdn/shop/files/1_2_d5e4109f-859e-46be-be9b-40e262490d4f.jpg?v=1740540638" alt="Venus E" class="device-image">`;

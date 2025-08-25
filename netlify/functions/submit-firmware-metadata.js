@@ -61,7 +61,7 @@ function validateMetadata(metadata) {
     }
     
     // Validate device types (allow both archive types and real device types)
-    const validDeviceTypes = ['HMG-50', 'VNSE3-0', 'HME-4', 'HME-3', '1'];
+    const validDeviceTypes = ['HMG-50', 'HMG-25', 'VNSE3-0', 'HME-4', 'HME-3', '1'];
     if (!validDeviceTypes.includes(metadata.deviceType) && !validDeviceTypes.includes(metadata.realDeviceType)) {
         throw new Error(`Invalid device type: ${metadata.deviceType} (real: ${metadata.realDeviceType})`);
     }
