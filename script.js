@@ -210,7 +210,6 @@ async function authenticateUser(email, password) {
         }
 
         const authText = await authResponse.text();
-        console.log('Auth response:', authText);
 
         // Store raw response for console viewing
         sessionStorage.setItem('rawAuthResponse', authText);
@@ -305,8 +304,6 @@ async function getFirmwareInfo(deviceId, deviceType = 'HMG-50', currentVersion =
         
         console.log('Firmware check for device type:', deviceType);
         console.log('Using endpoint:', params.endpoint);
-        console.log('Firmware check parameters:', params);
-        console.log('Firmware check URL:', proxiedUrl);
 
         const response = await fetch(proxiedUrl, {
             method: 'GET',
@@ -506,7 +503,7 @@ async function checkFirmwareArchive(deviceType, firmwareType, version) {
 
 async function submitFirmwareToArchive(metadata, deviceInfo, notes = '') {
     try {
-        console.log('Submitting firmware metadata:', { metadata, deviceInfo, notes }); // Debug log
+        // Submit firmware metadata to archive
         
         const response = await fetch('/.netlify/functions/submit-firmware-metadata', {
             method: 'POST',
@@ -520,11 +517,8 @@ async function submitFirmwareToArchive(metadata, deviceInfo, notes = '') {
             })
         });
         
-        console.log('Submission response status:', response.status, response.statusText); // Debug log
-        
         // Get response text first, then try to parse as JSON
         const responseText = await response.text();
-        console.log('Submission raw response:', responseText); // Debug log
         
         let data;
         try {

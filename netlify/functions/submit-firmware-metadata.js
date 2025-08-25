@@ -162,22 +162,18 @@ exports.handler = async (event, context) => {
         try {
             validateMetadata(metadata);
         } catch (error) {
-            console.error('Metadata validation failed:', error.message);
-            console.error('Received metadata:', JSON.stringify(metadata, null, 2));
             return {
                 statusCode: 400,
                 headers,
                 body: JSON.stringify({ 
                     error: 'Invalid metadata', 
-                    message: error.message,
-                    receivedMetadata: metadata // Debug info
+                    message: error.message
                 })
             };
         }
 
         // Check if GitHub token is available
         if (!process.env.GITHUB_TOKEN) {
-            console.error('GITHUB_TOKEN environment variable is not set');
             return {
                 statusCode: 500,
                 headers,
@@ -231,7 +227,6 @@ exports.handler = async (event, context) => {
                 };
             }
         } catch (searchError) {
-            console.log('Search error (non-critical):', searchError.message);
             // Continue with submission if search fails
         }
 
@@ -287,7 +282,7 @@ ${submissionNotes || 'None provided'}
                     }
                 });
             } catch (dispatchError) {
-                console.log('Repository dispatch failed (non-critical):', dispatchError.message);
+                // Repository dispatch failed (non-critical)
             }
 
             return {
@@ -303,8 +298,6 @@ ${submissionNotes || 'None provided'}
             };
 
         } catch (githubError) {
-            console.error('GitHub API error:', githubError);
-            
             return {
                 statusCode: 500,
                 headers,
@@ -316,9 +309,6 @@ ${submissionNotes || 'None provided'}
         }
 
     } catch (error) {
-        console.error('Error in firmware submission:', error);
-        console.error('Error stack:', error.stack);
-        
         return {
             statusCode: 500,
             headers,
