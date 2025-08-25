@@ -196,6 +196,9 @@ exports.handler = async (event, context) => {
         const owner = 'rweijnen';
         const repo = 'marstek-firmware-archive';
 
+        // Determine if this is a CT device for URL generation
+        const isCTDevice = metadata.deviceType.startsWith('CT');
+
         // Check for existing open issues for the same firmware version
         const searchQuery = isCTDevice 
             ? `repo:${owner}/${repo} is:issue is:open label:firmware-submission "${metadata.deviceType} v${metadata.version}"`
