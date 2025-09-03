@@ -416,7 +416,17 @@ async function getAdvanceSettings(deviceId, deviceType) {
             app_name: 'marstek'
         });
 
-        const proxiedUrl = `/.netlify/functions/marstek-proxy?targetUrl=${encodeURIComponent(apiUrl + '?' + params.toString())}`;
+        console.log('Getting advanced settings with params:', {
+            token: currentToken ? 'present' : 'missing',
+            devid: deviceId,
+            type: deviceType || 'HMG-50',
+            app_name: 'marstek'
+        });
+
+        const fullUrl = apiUrl + '?' + params.toString();
+        console.log('Full API URL:', fullUrl);
+
+        const proxiedUrl = `/.netlify/functions/marstek-proxy?targetUrl=${encodeURIComponent(fullUrl)}`;
         
         const response = await fetch(proxiedUrl, {
             method: 'GET',
@@ -426,6 +436,8 @@ async function getAdvanceSettings(deviceId, deviceType) {
         });
 
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error('API Error Response:', errorText);
             throw new Error(`API request failed: ${response.status} ${response.statusText}`);
         }
 
@@ -433,6 +445,10 @@ async function getAdvanceSettings(deviceId, deviceType) {
         console.log('Advanced settings response:', responseText);
         
         const advancedData = JSON.parse(responseText);
+        
+        // Store for console viewing
+        window.lastAdvancedResponse = advancedData;
+        
         return advancedData;
 
     } catch (error) {
@@ -1703,33 +1719,32 @@ async function copyAdvancedSettings() {
 function closeAdvancedModal() {
     document.getElementById('advancedModal').style.display = 'none';
     window.currentAdvancedSettings = null;
+    window.lastAdvancedResponse = null;
 }
 
-// Show raw advanced settings data
+// Show raw advanced settings data (from button in advanced settings content)
 async function showAdvancedRawData(deviceId) {
-    // Find the stored raw response or fetch it again
-    const devices = JSON.parse(sessionStorage.getItem('deviceList') || '[]');
-    const device = devices.find(d => d.devid === deviceId);
-    
-    if (device) {
-        try {
-            const advancedData = await getAdvanceSettings(deviceId, device.type || 'HMG-50');
-            
-            // Show in console modal
-            const consoleModal = document.getElementById('consoleModal');
-            const consoleTitle = document.getElementById('consoleModalTitle');
-            const consoleContent = document.getElementById('consoleContent');
-            const apiTestSection = document.getElementById('apiTestSection');
-            
-            consoleTitle.textContent = 'Advanced Settings - Raw API Response';
-            consoleContent.textContent = JSON.stringify(advancedData, null, 2);
-            apiTestSection.style.display = 'none';
-            
-            consoleModal.style.display = 'block';
-        } catch (error) {
-            alert('Failed to fetch raw data: ' + error.message);
-        }
+    showAdvancedConsoleData();
+}
+
+// Show raw advanced settings data (from console button in modal header)
+function showAdvancedConsoleData() {
+    if (!window.lastAdvancedResponse) {
+        alert('No advanced settings data available');
+        return;
     }
+    
+    // Show in console modal
+    const consoleModal = document.getElementById('consoleModal');
+    const consoleTitle = document.getElementById('consoleModalTitle');
+    const consoleContent = document.getElementById('consoleContent');
+    const apiTestSection = document.getElementById('apiTestSection');
+    
+    consoleTitle.textContent = 'Advanced Settings - Raw API Response';
+    consoleContent.textContent = JSON.stringify(window.lastAdvancedResponse, null, 2);
+    apiTestSection.style.display = 'none';
+    
+    consoleModal.style.display = 'block';
 }
 
 // Initialize page
