@@ -1638,16 +1638,13 @@ function displayAdvancedSettings(data, deviceId) {
             <div class="firmware-section">
                 <h3>ℹ️ No Advanced Settings Configured</h3>
                 <p>This device does not have any advanced settings configured.</p>
-                <p>Advanced settings like Local API access can be enabled through the official Marstek mobile app under device settings.</p>
-                
-                <div class="setting-info" style="margin-top: 20px;">
-                    <h4 style="color: #2196F3; margin-bottom: 10px;">💡 Available Advanced Settings:</h4>
-                    <ul style="color: #b0b0b0; margin-left: 20px; line-height: 1.6;">
-                        <li><strong>Local API:</strong> Enable direct communication with the device on your local network</li>
-                        <li><strong>Advanced Monitoring:</strong> Additional data logging and reporting features</li>
-                        <li><strong>Custom Configuration:</strong> Device-specific operational parameters</li>
-                    </ul>
-                </div>
+                <p>Local API access and other advanced features can be enabled through the official Marstek mobile app under device settings.</p>
+            </div>
+            <div class="firmware-section">
+                <h3>📊 Raw API Response</h3>
+                <button class="console-btn" onclick="showAdvancedRawData('${deviceId}')" style="position: relative;">
+                    <span class="console-icon">▢</span> View Raw Data
+                </button>
             </div>
         `;
         return;
