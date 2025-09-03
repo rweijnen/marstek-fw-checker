@@ -438,7 +438,18 @@ async function getAdvanceSettings(deviceId, deviceType) {
         if (!response.ok) {
             const errorText = await response.text();
             console.error('API Error Response:', errorText);
-            throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+            console.error('Failed URL:', fullUrl);
+            
+            // Store error response for console viewing
+            window.lastAdvancedResponse = {
+                error: true,
+                status: response.status,
+                statusText: response.statusText,
+                responseText: errorText,
+                requestUrl: fullUrl
+            };
+            
+            throw new Error(`API request failed: ${response.status} ${response.statusText}. Response: ${errorText}`);
         }
 
         const responseText = await response.text();
@@ -1594,6 +1605,11 @@ async function showAdvancedSettings(deviceId, deviceType, deviceName) {
                 <h3>❌ Error Loading Settings</h3>
                 <p>Could not retrieve advanced settings for this device.</p>
                 <p><strong>Error:</strong> ${error.message}</p>
+                <div style="margin-top: 15px;">
+                    <button class="console-btn" onclick="showAdvancedConsoleData()" style="position: relative;">
+                        <span class="console-icon">▢</span> View Error Details
+                    </button>
+                </div>
             </div>
         `;
     }
@@ -1730,7 +1746,7 @@ async function showAdvancedRawData(deviceId) {
 // Show raw advanced settings data (from console button in modal header)
 function showAdvancedConsoleData() {
     if (!window.lastAdvancedResponse) {
-        alert('No advanced settings data available');
+        alert('No advanced settings data available. Try clicking Advanced Settings first.');
         return;
     }
     
@@ -1740,7 +1756,11 @@ function showAdvancedConsoleData() {
     const consoleContent = document.getElementById('consoleContent');
     const apiTestSection = document.getElementById('apiTestSection');
     
-    consoleTitle.textContent = 'Advanced Settings - Raw API Response';
+    const title = window.lastAdvancedResponse.error ? 
+        'Advanced Settings - API Error Response' : 
+        'Advanced Settings - Raw API Response';
+    
+    consoleTitle.textContent = title;
     consoleContent.textContent = JSON.stringify(window.lastAdvancedResponse, null, 2);
     apiTestSection.style.display = 'none';
     
