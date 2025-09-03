@@ -1623,14 +1623,36 @@ function displayAdvancedSettings(data, deviceId) {
     if (!data || !data.data) {
         modalBody.innerHTML = `
             <div class="firmware-section">
-                <h3>⚠️ No Advanced Settings</h3>
-                <p>No advanced settings found for this device.</p>
+                <h3>⚠️ No Advanced Settings Response</h3>
+                <p>No valid response received from the advanced settings API.</p>
             </div>
         `;
         return;
     }
     
     const settings = data.data;
+    
+    // Check if settings is an empty array or object
+    if (Array.isArray(settings) && settings.length === 0) {
+        modalBody.innerHTML = `
+            <div class="firmware-section">
+                <h3>ℹ️ No Advanced Settings Configured</h3>
+                <p>This device does not have any advanced settings configured.</p>
+                <p>Advanced settings like Local API access can be enabled through the official Marstek mobile app under device settings.</p>
+                
+                <div class="setting-info" style="margin-top: 20px;">
+                    <h4 style="color: #2196F3; margin-bottom: 10px;">💡 Available Advanced Settings:</h4>
+                    <ul style="color: #b0b0b0; margin-left: 20px; line-height: 1.6;">
+                        <li><strong>Local API:</strong> Enable direct communication with the device on your local network</li>
+                        <li><strong>Advanced Monitoring:</strong> Additional data logging and reporting features</li>
+                        <li><strong>Custom Configuration:</strong> Device-specific operational parameters</li>
+                    </ul>
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
     let htmlContent = '';
     
     // Store the settings data for copying
