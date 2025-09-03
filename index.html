@@ -175,6 +175,23 @@ Loading...
         </div>
     </div>
 
+    <!-- Advanced Settings Modal -->
+    <div id="advancedModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="advancedModalTitle">Advanced Settings</h2>
+                <span class="modal-close" onclick="closeAdvancedModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="advancedModalBody">
+                <!-- Advanced settings will be populated here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="copyAdvancedSettings()">📋 Copy Settings</button>
+                <button class="btn btn-primary" onclick="closeAdvancedModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
     <footer>
         <p>This tool queries Marstek servers to see what firmware versions are currently available.</p>
         <p><strong>Note:</strong> This tool shows available firmware, not whether your device needs updating. Compare versions manually.</p>

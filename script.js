@@ -405,6 +405,42 @@ function downloadFirmware(downloadUrl, filename) {
     }
 }
 
+// Get advanced settings for a device
+async function getAdvanceSettings(deviceId, deviceType) {
+    try {
+        const apiUrl = `https://eu.hamedata.com/ems/api/v1/getAdvance`;
+        const params = new URLSearchParams({
+            token: currentToken,
+            devid: deviceId,
+            type: deviceType || 'HMG-50',
+            app_name: 'marstek'
+        });
+
+        const proxiedUrl = `/.netlify/functions/marstek-proxy?targetUrl=${encodeURIComponent(apiUrl + '?' + params.toString())}`;
+        
+        const response = await fetch(proxiedUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+        }
+
+        const responseText = await response.text();
+        console.log('Advanced settings response:', responseText);
+        
+        const advancedData = JSON.parse(responseText);
+        return advancedData;
+
+    } catch (error) {
+        console.error('Advanced settings fetch failed:', error);
+        throw error;
+    }
+}
+
 // Display devices after successful login
 function displayDevices(devices) {
     const deviceGrid = document.getElementById('deviceGrid');
@@ -457,12 +493,12 @@ function displayDevices(devices) {
                     <div class="device-info">Bluetooth: ${device.bluetooth_name || 'Unknown'}</div>
                     <div class="device-info">Added: ${registrationDate}</div>
                     <div class="device-id">ID: ${device.devid}</div>
+                    <div class="device-actions">
+                        <button class="action-btn firmware-btn" onclick="showFirmwareDetails(${JSON.stringify(device).replace(/"/g, '&quot;')}); event.stopPropagation();">Check Firmware</button>
+                        <button class="action-btn advanced-btn" onclick="showAdvancedSettings('${device.devid}', '${device.type || 'HMG-50'}', '${(device.name || `Device ${device.devid}`).replace(/'/g, "\\'")}'); event.stopPropagation();">Advanced Settings</button>
+                    </div>
                 </div>
             `;
-            
-            deviceCard.addEventListener('click', () => {
-                showFirmwareDetails(device);
-            });
             
             deviceGrid.appendChild(deviceCard);
         });
@@ -1522,6 +1558,180 @@ function copyConsoleContent() {
     }
 }
 
+// Show advanced settings for a device
+async function showAdvancedSettings(deviceId, deviceType, deviceName) {
+    const modal = document.getElementById('advancedModal');
+    const modalTitle = document.getElementById('advancedModalTitle');
+    const modalBody = document.getElementById('advancedModalBody');
+    
+    modalTitle.textContent = `${deviceName} - Advanced Settings`;
+    modalBody.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading advanced settings...</p></div>';
+    
+    modal.style.display = 'block';
+    
+    try {
+        const advancedData = await getAdvanceSettings(deviceId, deviceType);
+        displayAdvancedSettings(advancedData, deviceId);
+    } catch (error) {
+        modalBody.innerHTML = `
+            <div class="firmware-section">
+                <h3>❌ Error Loading Settings</h3>
+                <p>Could not retrieve advanced settings for this device.</p>
+                <p><strong>Error:</strong> ${error.message}</p>
+            </div>
+        `;
+    }
+}
+
+// Display advanced settings in the modal
+function displayAdvancedSettings(data, deviceId) {
+    const modalBody = document.getElementById('advancedModalBody');
+    
+    if (!data || !data.data) {
+        modalBody.innerHTML = `
+            <div class="firmware-section">
+                <h3>⚠️ No Advanced Settings</h3>
+                <p>No advanced settings found for this device.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const settings = data.data;
+    let htmlContent = '';
+    
+    // Store the settings data for copying
+    window.currentAdvancedSettings = settings;
+    
+    // Check for Local API settings
+    if (settings.localApi !== undefined) {
+        htmlContent += `
+            <div class="firmware-section">
+                <h3>🌐 Local API Configuration</h3>
+                <div class="setting-item">
+                    <strong>Status:</strong> ${settings.localApi ? '✅ Enabled' : '❌ Disabled'}
+                </div>
+                ${settings.localApi ? `
+                    <div class="setting-info">
+                        <p style="color: #4CAF50;">Local API is enabled for this device.</p>
+                        <p>You can access the device locally for real-time data and control.</p>
+                    </div>
+                ` : `
+                    <div class="setting-info">
+                        <p style="color: #FFA500;">Local API is disabled.</p>
+                        <p>Enable it in the Marstek app under device settings to access local data.</p>
+                    </div>
+                `}
+            </div>
+        `;
+    }
+    
+    // Display other advanced settings if present
+    const otherSettings = Object.keys(settings).filter(key => key !== 'localApi');
+    
+    if (otherSettings.length > 0) {
+        htmlContent += `<div class="firmware-section"><h3>⚙️ Additional Settings</h3>`;
+        
+        otherSettings.forEach(key => {
+            const value = settings[key];
+            const displayValue = typeof value === 'boolean' ? 
+                (value ? '✅ Enabled' : '❌ Disabled') : 
+                (value !== null && value !== undefined ? value : 'Not set');
+            
+            htmlContent += `
+                <div class="setting-item">
+                    <strong>${formatSettingName(key)}:</strong> ${displayValue}
+                </div>
+            `;
+        });
+        
+        htmlContent += `</div>`;
+    }
+    
+    // Add raw data section
+    htmlContent += `
+        <div class="firmware-section">
+            <h3>📊 Raw API Response</h3>
+            <button class="console-btn" onclick="showAdvancedRawData('${deviceId}')" style="margin-bottom: 10px;">
+                <span class="console-icon">▢</span> View Raw Data
+            </button>
+        </div>
+    `;
+    
+    modalBody.innerHTML = htmlContent || `
+        <div class="firmware-section">
+            <h3>ℹ️ Settings Retrieved</h3>
+            <p>Advanced settings data received but no specific configurations found.</p>
+        </div>
+    `;
+}
+
+// Format setting names for display
+function formatSettingName(key) {
+    // Convert camelCase or snake_case to Title Case
+    return key
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/_/g, ' ')
+        .replace(/^./, str => str.toUpperCase())
+        .trim();
+}
+
+// Copy advanced settings to clipboard
+async function copyAdvancedSettings() {
+    if (!window.currentAdvancedSettings) {
+        alert('No settings data available to copy');
+        return;
+    }
+    
+    try {
+        const jsonText = JSON.stringify(window.currentAdvancedSettings, null, 2);
+        await navigator.clipboard.writeText(jsonText);
+        
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '✅ Copied!';
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+        }, 2000);
+    } catch (error) {
+        alert('Failed to copy to clipboard: ' + error.message);
+    }
+}
+
+// Close advanced settings modal
+function closeAdvancedModal() {
+    document.getElementById('advancedModal').style.display = 'none';
+    window.currentAdvancedSettings = null;
+}
+
+// Show raw advanced settings data
+async function showAdvancedRawData(deviceId) {
+    // Find the stored raw response or fetch it again
+    const devices = JSON.parse(sessionStorage.getItem('deviceList') || '[]');
+    const device = devices.find(d => d.devid === deviceId);
+    
+    if (device) {
+        try {
+            const advancedData = await getAdvanceSettings(deviceId, device.type || 'HMG-50');
+            
+            // Show in console modal
+            const consoleModal = document.getElementById('consoleModal');
+            const consoleTitle = document.getElementById('consoleModalTitle');
+            const consoleContent = document.getElementById('consoleContent');
+            const apiTestSection = document.getElementById('apiTestSection');
+            
+            consoleTitle.textContent = 'Advanced Settings - Raw API Response';
+            consoleContent.textContent = JSON.stringify(advancedData, null, 2);
+            apiTestSection.style.display = 'none';
+            
+            consoleModal.style.display = 'block';
+        } catch (error) {
+            alert('Failed to fetch raw data: ' + error.message);
+        }
+    }
+}
+
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Marstek Firmware Query Tool loaded');
@@ -1543,12 +1753,16 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('click', function(event) {
         const wipModal = document.getElementById('wipModal');
         const consoleModal = document.getElementById('consoleModal');
+        const advancedModal = document.getElementById('advancedModal');
         
         if (event.target === wipModal) {
             wipModal.style.display = 'none';
         }
         if (event.target === consoleModal) {
             consoleModal.style.display = 'none';
+        }
+        if (event.target === advancedModal) {
+            advancedModal.style.display = 'none';
         }
     });
 });
