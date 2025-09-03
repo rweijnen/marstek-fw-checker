@@ -408,8 +408,8 @@ function downloadFirmware(downloadUrl, filename) {
 // Get advanced settings for a device
 async function getAdvanceSettings(deviceId, deviceType) {
     try {
-        const apiUrl = `https://eu.hamedata.com/ems/api/v1/getAdvance`;
         const params = new URLSearchParams({
+            endpoint: '/ems/api/v1/getAdvance',
             token: currentToken,
             devid: deviceId,
             type: deviceType || 'HMG-50',
@@ -417,16 +417,15 @@ async function getAdvanceSettings(deviceId, deviceType) {
         });
 
         console.log('Getting advanced settings with params:', {
+            endpoint: '/ems/api/v1/getAdvance',
             token: currentToken ? 'present' : 'missing',
             devid: deviceId,
             type: deviceType || 'HMG-50',
             app_name: 'marstek'
         });
 
-        const fullUrl = apiUrl + '?' + params.toString();
-        console.log('Full API URL:', fullUrl);
-
-        const proxiedUrl = `/.netlify/functions/marstek-proxy?targetUrl=${encodeURIComponent(fullUrl)}`;
+        const proxiedUrl = `/.netlify/functions/marstek-proxy?${params.toString()}`;
+        console.log('Proxied URL:', proxiedUrl);
         
         const response = await fetch(proxiedUrl, {
             method: 'GET',
@@ -438,7 +437,7 @@ async function getAdvanceSettings(deviceId, deviceType) {
         if (!response.ok) {
             const errorText = await response.text();
             console.error('API Error Response:', errorText);
-            console.error('Failed URL:', fullUrl);
+            console.error('Failed URL:', proxiedUrl);
             
             // Store error response for console viewing
             window.lastAdvancedResponse = {
@@ -446,7 +445,8 @@ async function getAdvanceSettings(deviceId, deviceType) {
                 status: response.status,
                 statusText: response.statusText,
                 responseText: errorText,
-                requestUrl: fullUrl
+                requestUrl: proxiedUrl,
+                endpoint: '/ems/api/v1/getAdvance'
             };
             
             throw new Error(`API request failed: ${response.status} ${response.statusText}. Response: ${errorText}`);
