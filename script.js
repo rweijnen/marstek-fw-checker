@@ -426,6 +426,7 @@ async function getAdvanceSettings(deviceId, deviceType) {
 
         const proxiedUrl = `/.netlify/functions/marstek-proxy?${params.toString()}`;
         console.log('Proxied URL:', proxiedUrl);
+        console.log('Full params string:', params.toString());
         
         const response = await fetch(proxiedUrl, {
             method: 'GET',
